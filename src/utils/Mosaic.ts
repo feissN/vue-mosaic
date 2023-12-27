@@ -1,16 +1,12 @@
-import update from "immutability-helper";
 import clone from "lodash/clone";
 import get from "lodash/get";
-import set from "lodash/set";
 import {
-  MosaicBranch,
-  MosaicDirection,
-  MosaicKey,
-  MosaicNode,
-  MosaicParent,
-  MosaicPath,
-  MosaicUpdate,
-  MosaicUpdateSpec,
+    MosaicBranch,
+    MosaicDirection,
+    MosaicKey,
+    MosaicNode,
+    MosaicParent,
+    MosaicPath
 } from "../types/Mosaic";
 
 function alternateDirection<T extends MosaicKey>(node: MosaicNode<T>, direction: MosaicDirection = "row"): MosaicNode<T> {
@@ -174,21 +170,4 @@ export function getAndAssertNodeAtPathExists<T extends MosaicKey>(tree: MosaicNo
     throw new Error(`Path [${path.join(", ")}] did not resolve to a node`);
   }
   return node;
-}
-
-export function buildSpecFromUpdate<T extends MosaicKey>(mosaicUpdate: MosaicUpdate<T>): MosaicUpdateSpec<T> {
-  if (mosaicUpdate.path.length > 0) {
-    return set({}, mosaicUpdate.path, mosaicUpdate.spec);
-  } else {
-    return mosaicUpdate.spec;
-  }
-}
-
-export function updateTree<T extends MosaicKey>(root: MosaicNode<T>, updates: MosaicUpdate<T>[]) {
-  let currentNode = root;
-  updates.forEach((mUpdate: MosaicUpdate<T>) => {
-    currentNode = update(currentNode as MosaicParent<T>, buildSpecFromUpdate(mUpdate));
-  });
-
-  return currentNode;
 }

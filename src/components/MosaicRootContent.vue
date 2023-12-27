@@ -23,17 +23,26 @@
     </MosaicRootContent>
   </template>
   <div v-else class="mosaic-tile absolute m-[3px]" :style="{ ...BoundingBox.asStyles(boundingBox) }">
-    <slot name="default" :node="node" :path="path" :bounding-box="boundingBox"> {{ node }} </slot>
+    <MosaicWindow
+      :node="(node as MosaicNode<T>)"
+      :bounding-box="boundingBox"
+      :path="path"
+      :total-window-amount="getLeaves(mosaicRootActions.getRoot()).length"
+    >
+      <slot name="default" :node="node" :path="path" :bounding-box="boundingBox"> {{ node }} </slot>
+    </MosaicWindow>
   </div>
 </template>
 
 <script setup lang="ts" generic="T extends MosaicKey">
 import { computed, inject } from "vue";
-import { UpdateTreeKey } from "../symbols/Mosaic";
+import { MosaicRootActionsKey } from "../symbols/Mosaic";
 import { MosaicBranch, MosaicKey, MosaicNode, MosaicParent } from "../types/Mosaic";
 import { BoundingBox } from "../utils/BoundingBox";
 import { isParent } from "../utils/Mosaic";
 import MosaicSplit from "./MosaicSplit.vue";
+import MosaicWindow from "./MosaicWindow.vue";
+import { getLeaves } from "../utils/Mosaic";
 
 const props = defineProps<{
   node: MosaicNode<T>;
@@ -41,7 +50,7 @@ const props = defineProps<{
   path: MosaicBranch[];
 }>();
 
-const updateTree = inject(UpdateTreeKey);
+const mosaicRootActions = inject(MosaicRootActionsKey);
 const splitPercentage = computed(() => {
   if (!isParent(props.node)) return 50;
 
@@ -60,9 +69,9 @@ const boundingBoxes = computed(() => {
 });
 
 const handleResize = (percentage: number, path: MosaicBranch[], suppressOnRelease: boolean) => {
-  if (!updateTree) return;
+  if (!mosaicRootActions) return;
 
-  updateTree(
+  mosaicRootActions.updateTree(
     [
       {
         path,

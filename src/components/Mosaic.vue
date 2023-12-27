@@ -1,5 +1,5 @@
 <template>
-  <div class="mosaic w-full h-full relative">
+  <div class="mosaic w-full h-full relative overflow-hidden">
     <MosaicRoot :root="(root as MosaicNode<T>)">
       <template #default="{ boundingBox, node, path }">
         <slot name="default" :node="node" :path="path" :bounding-box="boundingBox"> </slot>
@@ -9,10 +9,10 @@
 </template>
 
 <script setup lang="ts" generic="T extends MosaicKey">
-import { provide } from "vue";
-import { UpdateTreeKey } from "../symbols/Mosaic";
+import { provide, ref } from "vue";
+import { MosaicDraggingSourcePathKey, MosaicIsDraggingKey, MosaicRootActionsKey } from "../symbols/Mosaic";
 import { MosaicKey, MosaicNode, MosaicUpdate } from "../types/Mosaic";
-import { updateTree } from "../utils/Mosaic";
+import { createExpandUpdate, createHideUpdate, createRemoveUpdate, updateTree } from "../utils/MosaicUpdates";
 import MosaicRoot from "./MosaicRoot.vue";
 
 const props = defineProps<{
@@ -37,5 +37,37 @@ const updateTreeFromRoot = (updates: MosaicUpdate<T>[], suppressOnRelease: boole
   replaceRoot(updateTree(currentNode, updates), suppressOnRelease);
 };
 
-provide(UpdateTreeKey, updateTreeFromRoot);
+provide(MosaicRootActionsKey, {
+  updateTree: updateTreeFromRoot,
+  getRoot: () => props.root,
+  expand(path, percentage) {
+    updateTreeFromRoot([createExpandUpdate<T>(path, percentage)]);
+  },
+  hide(path) {
+    updateTreeFromRoot([createHideUpdate<T>(path)]);
+  },
+  remove(path) {
+    if (path.length === 0) {
+      replaceRoot(null);
+    } else {
+      updateTreeFromRoot([createRemoveUpdate(this.getRoot(), path)]);
+    }
+  },
+  replaceWith(path, node) {
+    updateTreeFromRoot([
+      {
+        path,
+        spec: {
+          $set: node,
+        },
+      },
+    ]);
+  },
+});
+
+const isDragging = ref(false);
+provide(MosaicIsDraggingKey, isDragging);
+
+const draggingSourcePath = ref([]);
+provide(MosaicDraggingSourcePathKey, draggingSourcePath);
 </script>
