@@ -1,8 +1,8 @@
 <template>
-  <div class="bg-gray-900 h-screen text-white">
+  <div class="bg-gray-900 h-screen text-white flex flex-col">
     <div>Mosaic test</div>
-    <div class="p-4 h-[500px] bg-gray-800">
-      <Mosaic :root="root" @change="handleChange" @release="handleSaveChange">
+    <div class="p-4 flex-1 bg-gray-800">
+      <Mosaic v-model:root="root" @release="handleSaveChange">
         <template #renderer="{ boundingBox, node, path }">
           <div class="bg-gray-700 w-full h-full p-2 overflow-auto">
             <div>Ja mooooin</div>
@@ -35,10 +35,6 @@ const root = ref<MosaicNode<string>>({
   },
   splitPercentage: 40,
 });
-
-const handleChange = (updatedNode: MosaicNode<string>) => {
-  root.value = updatedNode;
-};
 
 const handleSaveChange = (updatedNode: MosaicNode<string>) => {
   console.log("Save changes", updatedNode);
