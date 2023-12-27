@@ -20,13 +20,11 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (event: "change", node: MosaicNode<T>): void;
   (event: "release", node: MosaicNode<T>): void;
   (event: "update:root", node: MosaicNode<T>): void;
 }>();
 
 const replaceRoot = (currentNode: MosaicNode<T> | null, suppressOnRelease: boolean = false) => {
-  emit("change", currentNode);
   emit("update:root", currentNode);
   if (!suppressOnRelease) {
     emit("release", currentNode);
