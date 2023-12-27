@@ -1,8 +1,8 @@
 <template>
   <div class="mosaic-root absolute inset-1">
     <MosaicRootContent :node="(root as MosaicNode<MosaicKey>)" :bounding-box="BoundingBox.empty()" :path="[]">
-      <template #renderer="{ boundingBox, node, path }">
-        <slot name="renderer" :node="node" :path="path" :bounding-box="boundingBox"> </slot>
+      <template #default="{ boundingBox, node, path }">
+        <slot name="default" :node="node" :path="path" :bounding-box="boundingBox"> </slot>
       </template>
     </MosaicRootContent>
   </div>

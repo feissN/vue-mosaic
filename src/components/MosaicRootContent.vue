@@ -1,8 +1,8 @@
 <template>
   <template v-if="isParent((node as MosaicNode<T>))">
     <MosaicRootContent :node="(node as MosaicParent<any>).first " :bounding-box="boundingBoxes.first" :path="path.concat('first')">
-      <template #renderer="{ boundingBox, node, path }">
-        <slot name="renderer" :node="node" :path="path" :bounding-box="boundingBox"> </slot>
+      <template #default="{ boundingBox, node, path }">
+        <slot name="default" :node="node" :path="path" :bounding-box="boundingBox"> </slot>
       </template>
     </MosaicRootContent>
 
@@ -17,13 +17,13 @@
     />
 
     <MosaicRootContent :node="(node as MosaicParent<any>).second " :bounding-box="boundingBoxes.second" :path="path.concat('second')">
-      <template #renderer="{ boundingBox, node, path }">
-        <slot name="renderer" :node="node" :path="path" :bounding-box="boundingBox"> </slot>
+      <template #default="{ boundingBox, node, path }">
+        <slot name="default" :node="node" :path="path" :bounding-box="boundingBox"> </slot>
       </template>
     </MosaicRootContent>
   </template>
   <div v-else class="mosaic-tile absolute m-[3px]" :style="{ ...BoundingBox.asStyles(boundingBox) }">
-    <slot name="renderer" :node="node" :path="path" :bounding-box="boundingBox"> {{ node }} </slot>
+    <slot name="default" :node="node" :path="path" :bounding-box="boundingBox"> {{ node }} </slot>
   </div>
 </template>
 

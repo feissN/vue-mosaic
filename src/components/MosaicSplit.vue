@@ -1,6 +1,6 @@
 <template>
   <div
-    class="mosaic-split mosaic-split-line absolute z-10 bg-black"
+    class="mosaic-split mosaic-split-line absolute z-10 bg-[#4c90f0] opacity-0 hover:opacity-75 transition-opacity rounded-md"
     :class="[direction === 'column' ? 'mt-[-3px] h-[6px] cursor-ns-resize' : 'ml-[-3px] w-[6px] cursor-ew-resize']"
     :style="{ ...styles }"
     ref="resizerRef"
