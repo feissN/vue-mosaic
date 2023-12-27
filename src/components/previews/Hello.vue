@@ -9,7 +9,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
+import { MosaicItem } from "../../types/Mosaic";
+
+const props = defineProps<{
+  node: MosaicItem;
+}>();
 
 const count = ref(0);
 const handlePlus = () => {
@@ -18,4 +23,12 @@ const handlePlus = () => {
 const handleMinus = () => {
   count.value--;
 };
+
+onMounted(() => {
+  console.log("mounted", props.node.title);
+});
+
+onUnmounted(() => {
+  console.log("unmounted", props.node.title);
+});
 </script>

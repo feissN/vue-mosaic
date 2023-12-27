@@ -30,7 +30,7 @@
       :total-window-amount="getLeaves(mosaicRootActions.getRoot()).length"
     >
       <slot name="default" :node="node" :path="path" :bounding-box="boundingBox">
-        <component :is="node.component"></component>
+        <component :is="node.component" v-bind="{ node, path, boundingBox }"></component>
       </slot>
     </MosaicWindow>
   </div>

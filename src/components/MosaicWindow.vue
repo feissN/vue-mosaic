@@ -75,7 +75,6 @@ watchEffect(() => {
 
 const handleDragStart = (e: DragEvent) => {
   if (!mosaicRootActions || props.totalWindowAmount === 1) return;
-  console.log("Start", e);
 
   const startX = e.clientX;
   const startY = e.clientY;

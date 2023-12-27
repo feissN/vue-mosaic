@@ -29,6 +29,6 @@ const root = ref<MosaicNode>({
 });
 
 const handleSaveChange = (updatedNode: MosaicNode) => {
-  console.log("Save changes", updatedNode);
+  // Handle update on save
 };
 </script>
