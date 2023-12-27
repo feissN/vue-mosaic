@@ -60,8 +60,9 @@ export interface MosaicRootActions {
    * Atomically applies all updates to the current tree
    * @param updates
    * @param suppressOnRelease (default: false)
+   * @param refreshPortals (default: false)
    */
-  updateTree: (updates: MosaicUpdate[], suppressOnRelease?: boolean) => void;
+  updateTree: (updates: MosaicUpdate[], suppressOnRelease?: boolean, refreshPortals?: boolean) => void;
   /**
    * Returns the root of this Mosaic instance
    */

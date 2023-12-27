@@ -21,7 +21,7 @@
       :path="path"
       :total-window-amount="getLeaves(mosaicRootActions.getRoot()).length"
     >
-      <div :id="node.id"></div>
+      <div :id="node.id" class="w-full h-full overflow-hidden"></div>
     </MosaicWindow>
   </div>
 </template>

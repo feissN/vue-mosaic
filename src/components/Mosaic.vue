@@ -3,18 +3,21 @@
     <MosaicRoot :root="root"> </MosaicRoot>
   </div>
   <div>
-    <div v-for="leave of leaves" :ref="(element) => leaveElements.push({id:leave.id, element: element as HTMLElement})">
+    <div
+      v-for="leave of leaves"
+      :ref="(element) => leaveElements.push({id:leave.id, element: (element as HTMLElement).children[0] as HTMLElement})"
+    >
       <component :is="leave.component" :title="leave.title"></component>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, provide, ref, watch } from "vue";
+import { nextTick, onMounted, provide, ref } from "vue";
 import { MosaicDraggingSourcePathKey, MosaicIsDraggingKey, MosaicRootActionsKey } from "../symbols/Mosaic";
 import { MosaicItem, MosaicNode, MosaicUpdate } from "../types/Mosaic";
 import { getLeaves } from "../utils/Mosaic";
-import { calculateSplitPercentageSum, createExpandUpdate, createHideUpdate, createRemoveUpdate, updateTree } from "../utils/MosaicUpdates";
+import { createExpandUpdate, createHideUpdate, createRemoveUpdate, updateTree } from "../utils/MosaicUpdates";
 import MosaicRoot from "./MosaicRoot.vue";
 
 const props = defineProps<{
@@ -36,10 +39,14 @@ const replaceRoot = (currentNode: MosaicNode | null, suppressOnRelease: boolean 
 const leaveElements = ref<{ id: string; element: HTMLElement }[]>([]);
 const leaves = ref<MosaicItem[]>([]);
 
-const updateTreeFromRoot = (updates: MosaicUpdate[], suppressOnRelease: boolean = false) => {
+const updateTreeFromRoot = (updates: MosaicUpdate[], suppressOnRelease: boolean = false, refreshPortals: boolean = false) => {
   const currentNode = props.root || ({} as MosaicNode);
 
   replaceRoot(updateTree(currentNode, updates), suppressOnRelease);
+
+  if (refreshPortals) {
+    handleSetPortalItems();
+  }
 };
 
 provide(MosaicRootActionsKey, {
@@ -86,20 +93,6 @@ const handleSetPortalItems = async () => {
     portalDiv.appendChild(element.element as unknown as Node);
   });
 };
-
-watch(
-  () => props.root,
-  (currentRoot, oldRoot) => {
-    if (calculateSplitPercentageSum(currentRoot) !== calculateSplitPercentageSum(oldRoot)) {
-      return;
-    }
-
-    handleSetPortalItems();
-  },
-  {
-    deep: true,
-  }
-);
 
 onMounted(() => {
   leaves.value = getLeaves(props.root);

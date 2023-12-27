@@ -130,19 +130,27 @@ const handleMouseUp = (e: MouseEvent) => {
   if ((e.target as HTMLElement).classList?.contains("drop-target")) return;
   e.preventDefault;
 
-  mosaicRootActions.updateTree([
-    {
-      path: dropRight(props.path),
-      spec: {
-        splitPercentage: {
-          $set: undefined,
+  mosaicRootActions.updateTree(
+    [
+      {
+        path: dropRight(props.path),
+        spec: {
+          splitPercentage: {
+            $set: undefined,
+          },
         },
       },
-    },
-  ]);
+    ],
+    false,
+    true
+  );
 };
 
 const handleDragEnd = (event: MouseEvent, position: MosaicDropTargetPosition) => {
-  mosaicRootActions.updateTree(createDragToUpdates(mosaicRootActions.getRoot()!, mosaicSourcePath.value, props.path, position));
+  mosaicRootActions.updateTree(
+    createDragToUpdates(mosaicRootActions.getRoot()!, mosaicSourcePath.value, props.path, position),
+    false,
+    true
+  );
 };
 </script>
