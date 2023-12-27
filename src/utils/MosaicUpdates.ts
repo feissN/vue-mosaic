@@ -30,6 +30,8 @@ export function buildSpecFromUpdate(mosaicUpdate: MosaicUpdate): MosaicUpdateSpe
  */
 export function updateTree(root: MosaicNode, updates: MosaicUpdate[]) {
   let currentNode = root;
+  // TODO: get rid of the immutability-helper and just move all the updating items yourself.
+  // Reason: I need to be able to keep the state of my component between updates
   updates.forEach((mUpdate: MosaicUpdate) => {
     currentNode = update(currentNode as MosaicParent, buildSpecFromUpdate(mUpdate));
   });
