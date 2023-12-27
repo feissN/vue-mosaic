@@ -1,15 +1,8 @@
 import clone from "lodash/clone";
 import get from "lodash/get";
-import {
-    MosaicBranch,
-    MosaicDirection,
-    MosaicKey,
-    MosaicNode,
-    MosaicParent,
-    MosaicPath
-} from "../types/Mosaic";
+import { MosaicBranch, MosaicDirection, MosaicNode, MosaicParent, MosaicPath } from "../types/Mosaic";
 
-function alternateDirection<T extends MosaicKey>(node: MosaicNode<T>, direction: MosaicDirection = "row"): MosaicNode<T> {
+function alternateDirection(node: MosaicNode, direction: MosaicDirection = "row"): MosaicNode {
   if (isParent(node)) {
     const nextDirection = getOtherDirection(direction);
     return {
@@ -34,26 +27,23 @@ export enum Corner {
  * @param node
  * @returns {boolean}
  */
-export function isParent<T extends MosaicKey>(node: MosaicNode<T>): node is MosaicParent<T> {
-  return (node as MosaicParent<T>).direction != null;
+export function isParent(node: MosaicNode): node is MosaicParent {
+  return (node as MosaicParent).direction != null;
 }
 
 /**
  * Creates a balanced binary tree from `leaves` with the goal of making them as equal area as possible
  * @param leaves
  * @param startDirection
- * @returns {MosaicNode<T>}
+ * @returns {MosaicNode}
  */
-export function createBalancedTreeFromLeaves<T extends MosaicKey>(
-  leaves: MosaicNode<T>[],
-  startDirection: MosaicDirection = "row"
-): MosaicNode<T> | null {
+export function createBalancedTreeFromLeaves(leaves: MosaicNode[], startDirection: MosaicDirection = "row"): MosaicNode | null {
   if (leaves.length === 0) {
     return null;
   }
 
-  let current: MosaicNode<T>[] = clone(leaves);
-  let next: MosaicNode<T>[] = [];
+  let current: MosaicNode[] = clone(leaves);
+  let next: MosaicNode[] = [];
 
   while (current.length > 1) {
     while (current.length > 0) {
@@ -107,8 +97,8 @@ export function getOtherDirection(direction: MosaicDirection): MosaicDirection {
  * @param corner
  * @returns {MosaicPath}
  */
-export function getPathToCorner(tree: MosaicNode<any>, corner: Corner): MosaicPath {
-  let currentNode: MosaicNode<any> = tree;
+export function getPathToCorner(tree: MosaicNode, corner: Corner): MosaicPath {
+  let currentNode: MosaicNode = tree;
   const currentPath: MosaicPath = [];
   while (isParent(currentNode)) {
     if (currentNode.direction === "row" && (corner === Corner.TOP_LEFT || corner === Corner.BOTTOM_LEFT)) {
@@ -129,9 +119,9 @@ export function getPathToCorner(tree: MosaicNode<any>, corner: Corner): MosaicPa
 /**
  * Gets all leaves of `tree`
  * @param tree
- * @returns {T[]}
+ * @returns {MosaicNode[]}
  */
-export function getLeaves<T extends MosaicKey>(tree: MosaicNode<T> | null): T[] {
+export function getLeaves(tree: MosaicNode | null): MosaicNode[] {
   if (tree == null) {
     return [];
   } else if (isParent(tree)) {
@@ -145,9 +135,9 @@ export function getLeaves<T extends MosaicKey>(tree: MosaicNode<T> | null): T[] 
  * Gets node at `path` from `tree`
  * @param tree
  * @param path
- * @returns {MosaicNode<T>|null}
+ * @returns {MosaicNode|null}
  */
-export function getNodeAtPath<T extends MosaicKey>(tree: MosaicNode<T> | null, path: MosaicPath): MosaicNode<T> | null {
+export function getNodeAtPath(tree: MosaicNode | null, path: MosaicPath): MosaicNode | null {
   if (path.length > 0) {
     return get(tree, path, null);
   } else {
@@ -159,9 +149,9 @@ export function getNodeAtPath<T extends MosaicKey>(tree: MosaicNode<T> | null, p
  * Gets node at `path` from `tree` and verifies that neither `tree` nor the result are null
  * @param tree
  * @param path
- * @returns {MosaicNode<T>}
+ * @returns {MosaicNode}
  */
-export function getAndAssertNodeAtPathExists<T extends MosaicKey>(tree: MosaicNode<T> | null, path: MosaicPath): MosaicNode<T> {
+export function getAndAssertNodeAtPathExists(tree: MosaicNode | null, path: MosaicPath): MosaicNode {
   if (tree == null) {
     throw new Error("Root is empty, cannot fetch path");
   }

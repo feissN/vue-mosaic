@@ -1,12 +1,16 @@
 <template>
-  <div ref="mosaicWindowRef" class="mosaic-window mosaic-drop-target flex flex-col h-full relative select-none rounded-md overflow-hidden">
+  <div
+    v-if="!isParent(node)"
+    ref="mosaicWindowRef"
+    class="mosaic-window mosaic-drop-target flex flex-col h-full relative select-none rounded-md overflow-hidden"
+  >
     <div
       class="mosaic-window-toolbar bg-gray-600 p-1"
       :class="[totalWindowAmount !== 1 ? 'draggable cursor-move hover:bg-gray-500' : '']"
       :draggable="totalWindowAmount !== 1"
       @dragstart="handleDragStart"
     >
-      {{ node }}
+      {{ node.title }}
     </div>
     <div class="mosaic-window-body p-2 bg-gray-700 flex-1 h-full overflow-auto select-text">
       <slot>{{ node }}</slot>
@@ -34,18 +38,19 @@
   </div>
 </template>
 
-<script setup lang="ts" generic="T extends MosaicKey">
+<script setup lang="ts">
 import dropRight from "lodash/dropRight";
 import values from "lodash/values";
 import { inject, ref, watchEffect } from "vue";
-import { MosaicBranch, MosaicKey, MosaicNode } from "../types/Mosaic";
+import { MosaicDraggingSourcePathKey, MosaicIsDraggingKey, MosaicRootActionsKey } from "../symbols/Mosaic";
+import { MosaicBranch, MosaicNode } from "../types/Mosaic";
 import { BoundingBox } from "../utils/BoundingBox";
 import { MosaicDropTargetPosition } from "../utils/DragAndDrop";
-import { MosaicDraggingSourcePathKey, MosaicIsDraggingKey, MosaicRootActionsKey } from "../symbols/Mosaic";
+import { isParent } from "../utils/Mosaic";
 import { createDragToUpdates } from "../utils/MosaicUpdates";
 
 const props = defineProps<{
-  node: MosaicNode<T>;
+  node: MosaicNode;
   boundingBox: BoundingBox;
   path: MosaicBranch[];
   totalWindowAmount: number;

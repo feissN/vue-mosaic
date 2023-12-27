@@ -1,35 +1,38 @@
-import { Component } from "vue";
+import { Component, ComponentPublicInstance } from "vue";
 import { Spec } from "immutability-helper";
 
-export type MosaicKey = string | number;
+export type MosaicItem = {
+  component: InstanceType<ComponentPublicInstance<any>>;
+  title: string;
+};
 
-export type MosaicNode<T extends MosaicKey> = MosaicParent<T> | T;
+export type MosaicNode = MosaicParent | MosaicItem;
 
 export type MosaicDirection = "row" | "column";
 
-export interface MosaicParent<T extends MosaicKey> {
+export interface MosaicParent {
   direction: MosaicDirection;
-  first: MosaicNode<T>;
-  second: MosaicNode<T>;
+  first: MosaicNode;
+  second: MosaicNode;
   splitPercentage?: number;
 }
 
 export type MosaicBranch = "first" | "second";
 export type MosaicPath = MosaicBranch[];
 
-export type TileRenderer<T extends MosaicKey> = (t: T, path: MosaicBranch[]) => Component;
+export type TileRenderer = (t: MosaicItem, path: MosaicBranch[]) => Component;
 
-export type MosaicUpdateSpec<T extends MosaicKey> = Spec<MosaicNode<T>>;
+export type MosaicUpdateSpec = Spec<MosaicNode>;
 
-export interface MosaicUpdate<T extends MosaicKey> {
+export interface MosaicUpdate {
   path: MosaicPath;
-  spec: MosaicUpdateSpec<T>;
+  spec: MosaicUpdateSpec;
 }
 
 /**
  * These actions are used to alter the state of the view tree
  */
-export interface MosaicRootActions<T extends MosaicKey> {
+export interface MosaicRootActions {
   /**
    * Increases the size of this node and bubbles up the tree
    * @param path Path to node to expand
@@ -51,15 +54,15 @@ export interface MosaicRootActions<T extends MosaicKey> {
    * @param path
    * @param node
    */
-  replaceWith: (path: MosaicPath, node: MosaicNode<T>) => void;
+  replaceWith: (path: MosaicPath, node: MosaicNode) => void;
   /**
    * Atomically applies all updates to the current tree
    * @param updates
    * @param suppressOnRelease (default: false)
    */
-  updateTree: (updates: MosaicUpdate<T>[], suppressOnRelease?: boolean) => void;
+  updateTree: (updates: MosaicUpdate[], suppressOnRelease?: boolean) => void;
   /**
    * Returns the root of this Mosaic instance
    */
-  getRoot: () => MosaicNode<T> | null;
+  getRoot: () => MosaicNode | null;
 }

@@ -1,13 +1,13 @@
 <template>
-  <template v-if="isParent((node as MosaicNode<T>))">
-    <MosaicRootContent :node="(node as MosaicParent<any>).first " :bounding-box="boundingBoxes.first" :path="path.concat('first')">
+  <template v-if="isParent(node)">
+    <MosaicRootContent :node="node.first" :bounding-box="boundingBoxes.first" :path="path.concat('first')">
       <template #default="{ boundingBox, node, path }">
         <slot name="default" :node="node" :path="path" :bounding-box="boundingBox"> </slot>
       </template>
     </MosaicRootContent>
 
     <MosaicSplit
-      :direction="(node as MosaicParent<T>).direction"
+      :direction="node.direction"
       :bounding-box="boundingBox"
       :split-percentage="splitPercentage"
       :path="path"
@@ -16,7 +16,7 @@
       @change="handleResize($event, path, true)"
     />
 
-    <MosaicRootContent :node="(node as MosaicParent<any>).second " :bounding-box="boundingBoxes.second" :path="path.concat('second')">
+    <MosaicRootContent :node="node.second" :bounding-box="boundingBoxes.second" :path="path.concat('second')">
       <template #default="{ boundingBox, node, path }">
         <slot name="default" :node="node" :path="path" :bounding-box="boundingBox"> </slot>
       </template>
@@ -24,28 +24,29 @@
   </template>
   <div v-else class="mosaic-tile absolute m-[3px]" :style="{ ...BoundingBox.asStyles(boundingBox) }">
     <MosaicWindow
-      :node="(node as MosaicNode<T>)"
+      :node="node"
       :bounding-box="boundingBox"
       :path="path"
       :total-window-amount="getLeaves(mosaicRootActions.getRoot()).length"
     >
-      <slot name="default" :node="node" :path="path" :bounding-box="boundingBox"> {{ node }} </slot>
+      <slot name="default" :node="node" :path="path" :bounding-box="boundingBox">
+        <component :is="node.component"></component>
+      </slot>
     </MosaicWindow>
   </div>
 </template>
 
-<script setup lang="ts" generic="T extends MosaicKey">
+<script setup lang="ts">
 import { computed, inject } from "vue";
 import { MosaicRootActionsKey } from "../symbols/Mosaic";
-import { MosaicBranch, MosaicKey, MosaicNode, MosaicParent } from "../types/Mosaic";
+import { MosaicBranch, MosaicNode } from "../types/Mosaic";
 import { BoundingBox } from "../utils/BoundingBox";
-import { isParent } from "../utils/Mosaic";
+import { getLeaves, isParent } from "../utils/Mosaic";
 import MosaicSplit from "./MosaicSplit.vue";
 import MosaicWindow from "./MosaicWindow.vue";
-import { getLeaves } from "../utils/Mosaic";
 
 const props = defineProps<{
-  node: MosaicNode<T>;
+  node: MosaicNode;
   boundingBox: BoundingBox;
   path: MosaicBranch[];
 }>();
