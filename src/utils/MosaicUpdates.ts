@@ -7,7 +7,7 @@ import set from "lodash/set";
 import take from "lodash/take";
 import { MosaicBranch, MosaicDirection, MosaicNode, MosaicParent, MosaicPath, MosaicUpdate, MosaicUpdateSpec } from "../types/Mosaic";
 import { MosaicDropTargetPosition } from "../utils/DragAndDrop";
-import { getAndAssertNodeAtPathExists, getOtherBranch } from "./Mosaic";
+import { getAndAssertNodeAtPathExists, getOtherBranch, isParent } from "./Mosaic";
 
 /**
  * Used to prepare `update` for `immutability-helper`
@@ -171,4 +171,15 @@ export function createExpandUpdate(path: MosaicPath, percentage: number): Mosaic
     spec,
     path: [],
   };
+}
+
+export function calculateSplitPercentageSum(node: MosaicNode): number {
+  if (!isParent(node)) {
+    return 0;
+  }
+
+  const firstSum = calculateSplitPercentageSum(node.first);
+  const secondSum = calculateSplitPercentageSum(node.second);
+
+  return (node.splitPercentage || 0) + firstSum + secondSum;
 }

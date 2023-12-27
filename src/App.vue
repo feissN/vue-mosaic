@@ -14,16 +14,16 @@ import Hello from "./components/previews/Hello.vue";
 
 const root = ref<MosaicNode>({
   direction: "row",
-  first: { component: Hello, title: "Hello 1" },
+  first: { id: "hello1", component: Hello, title: "Hello 1" },
   second: {
     direction: "column",
     first: {
       direction: "row",
-      first: { component: Hello, title: "Hello 2" },
-      second: { component: Hello, title: "Hello 3" },
+      first: { id: "hello2", component: Hello, title: "Hello 2" },
+      second: { id: "hello3", component: Hello, title: "Hello 3" },
       splitPercentage: 70,
     },
-    second: { component: Hello, title: "Hello 4" },
+    second: { id: "hello4", component: Hello, title: "Hello 4" },
   },
   splitPercentage: 40,
 });

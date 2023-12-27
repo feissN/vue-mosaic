@@ -10,10 +10,9 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
-import { MosaicItem } from "../../types/Mosaic";
 
 const props = defineProps<{
-  node: MosaicItem;
+  title: string;
 }>();
 
 const count = ref(0);
@@ -25,10 +24,10 @@ const handleMinus = () => {
 };
 
 onMounted(() => {
-  console.log("mounted", props.node.title);
+  console.log("mounted", props.title);
 });
 
 onUnmounted(() => {
-  console.log("unmounted", props.node.title);
+  console.log("unmounted", props.title);
 });
 </script>

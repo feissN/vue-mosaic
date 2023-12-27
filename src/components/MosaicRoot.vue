@@ -1,10 +1,6 @@
 <template>
   <div class="mosaic-root absolute inset-1">
-    <MosaicRootContent :node="root" :bounding-box="BoundingBox.empty()" :path="[]">
-      <template #default="{ boundingBox, node, path }">
-        <slot name="default" :node="node" :path="path" :bounding-box="boundingBox"> </slot>
-      </template>
-    </MosaicRootContent>
+    <MosaicRootContent :node="root" :bounding-box="BoundingBox.empty()" :path="[]"> </MosaicRootContent>
   </div>
 </template>
 

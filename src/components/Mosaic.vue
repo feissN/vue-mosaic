@@ -1,18 +1,20 @@
 <template>
   <div class="mosaic w-full h-full relative overflow-hidden">
-    <MosaicRoot :root="root">
-      <template #default="{ boundingBox, node, path }">
-        <slot name="default" :node="node" :path="path" :bounding-box="boundingBox"> </slot>
-      </template>
-    </MosaicRoot>
+    <MosaicRoot :root="root"> </MosaicRoot>
+  </div>
+  <div>
+    <div v-for="leave of leaves" :ref="(element) => leaveElements.push({id:leave.id, element: element as HTMLElement})">
+      <component :is="leave.component" :title="leave.title"></component>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { provide, ref } from "vue";
+import { nextTick, onMounted, provide, ref, watch } from "vue";
 import { MosaicDraggingSourcePathKey, MosaicIsDraggingKey, MosaicRootActionsKey } from "../symbols/Mosaic";
 import { MosaicItem, MosaicNode, MosaicUpdate } from "../types/Mosaic";
-import { createExpandUpdate, createHideUpdate, createRemoveUpdate, updateTree } from "../utils/MosaicUpdates";
+import { getLeaves } from "../utils/Mosaic";
+import { calculateSplitPercentageSum, createExpandUpdate, createHideUpdate, createRemoveUpdate, updateTree } from "../utils/MosaicUpdates";
 import MosaicRoot from "./MosaicRoot.vue";
 
 const props = defineProps<{
@@ -30,6 +32,9 @@ const replaceRoot = (currentNode: MosaicNode | null, suppressOnRelease: boolean 
     emit("release", currentNode);
   }
 };
+
+const leaveElements = ref<{ id: string; element: HTMLElement }[]>([]);
+const leaves = ref<MosaicItem[]>([]);
 
 const updateTreeFromRoot = (updates: MosaicUpdate[], suppressOnRelease: boolean = false) => {
   const currentNode = props.root || ({} as MosaicNode);
@@ -70,4 +75,34 @@ provide(MosaicIsDraggingKey, isDragging);
 
 const draggingSourcePath = ref([]);
 provide(MosaicDraggingSourcePathKey, draggingSourcePath);
+
+const handleSetPortalItems = async () => {
+  await nextTick();
+
+  leaveElements.value.forEach((element) => {
+    const portalDiv = document.getElementById(element.id);
+    if (!portalDiv) return;
+
+    portalDiv.appendChild(element.element as unknown as Node);
+  });
+};
+
+watch(
+  () => props.root,
+  (currentRoot, oldRoot) => {
+    if (calculateSplitPercentageSum(currentRoot) !== calculateSplitPercentageSum(oldRoot)) {
+      return;
+    }
+
+    handleSetPortalItems();
+  },
+  {
+    deep: true,
+  }
+);
+
+onMounted(() => {
+  leaves.value = getLeaves(props.root);
+  handleSetPortalItems();
+});
 </script>

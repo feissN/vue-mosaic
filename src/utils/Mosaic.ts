@@ -1,6 +1,6 @@
 import clone from "lodash/clone";
 import get from "lodash/get";
-import { MosaicBranch, MosaicDirection, MosaicNode, MosaicParent, MosaicPath } from "../types/Mosaic";
+import { MosaicBranch, MosaicDirection, MosaicItem, MosaicNode, MosaicParent, MosaicPath } from "../types/Mosaic";
 
 function alternateDirection(node: MosaicNode, direction: MosaicDirection = "row"): MosaicNode {
   if (isParent(node)) {
@@ -119,9 +119,9 @@ export function getPathToCorner(tree: MosaicNode, corner: Corner): MosaicPath {
 /**
  * Gets all leaves of `tree`
  * @param tree
- * @returns {MosaicNode[]}
+ * @returns {MosaicItem[]}
  */
-export function getLeaves(tree: MosaicNode | null): MosaicNode[] {
+export function getLeaves(tree: MosaicNode | null): MosaicItem[] {
   if (tree == null) {
     return [];
   } else if (isParent(tree)) {

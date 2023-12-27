@@ -2,6 +2,7 @@ import { Component, ComponentPublicInstance } from "vue";
 import { Spec } from "immutability-helper";
 
 export type MosaicItem = {
+  id: string;
   component: InstanceType<ComponentPublicInstance<any>>;
   title: string;
 };
