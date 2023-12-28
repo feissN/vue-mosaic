@@ -25,9 +25,14 @@
 </template>
 
 <script setup lang="ts">
-import { ComponentPublicInstance, computed, nextTick, onMounted, provide, ref, useSlots, watch } from "vue";
-import { MosaicContextActiveLeavesKey, MosaicContextAllLeavesKey, MosaicRootActionsKey } from "../symbols/Mosaic";
-import { MosaicItem, MosaicNode, MosaicUpdate } from "../types/Mosaic";
+import { ComponentPublicInstance, computed, nextTick, onMounted, provide, ref, useSlots } from "vue";
+import {
+  MosaicContextActionsProviderKey,
+  MosaicContextActiveLeavesKey,
+  MosaicContextAllLeavesKey,
+  MosaicRootActionsKey,
+} from "../symbols/Mosaic";
+import { MosaicItem, MosaicNode, MosaicRootActions, MosaicUpdate } from "../types/Mosaic";
 import { BoundingBox } from "../utils/BoundingBox";
 import { injectStrict } from "../utils/InjectStrict";
 import { addMosaicNode, getLeaves } from "../utils/Mosaic";
@@ -62,9 +67,9 @@ const replaceRoot = (currentNode: MosaicNode | null, suppressOnRelease: boolean 
 const leaveElements = ref<{ id: string; element: HTMLElement }[]>([]);
 
 const handleDropped = async () => {
-  await nextTick;
+  await nextTick();
   const newLeaves = getLeaves(props.root);
-  activeLeaves.value.splice(0, newLeaves.length, ...newLeaves);
+  activeLeaves.value = newLeaves;
 };
 
 const handleAddLeaveElement = (leave: MosaicItem, element: HTMLElement) => {
@@ -83,7 +88,7 @@ const updateTreeFromRoot = async (updates: MosaicUpdate[], suppressOnRelease: bo
   }
 };
 
-provide(MosaicRootActionsKey, {
+const mosaicRootActions: MosaicRootActions = {
   updateTree: updateTreeFromRoot,
   getRoot: () => props.root,
   expand(path, percentage) {
@@ -109,7 +114,16 @@ provide(MosaicRootActionsKey, {
       },
     ]);
   },
-});
+};
+provide(MosaicRootActionsKey, mosaicRootActions);
+
+const mosaicContextActions = injectStrict(MosaicContextActionsProviderKey);
+mosaicContextActions.updateTree = mosaicRootActions.updateTree;
+mosaicContextActions.getRoot = mosaicRootActions.getRoot;
+mosaicContextActions.expand = mosaicRootActions.expand;
+mosaicContextActions.hide = mosaicRootActions.hide;
+mosaicContextActions.remove = mosaicRootActions.remove;
+mosaicContextActions.replaceWith = mosaicRootActions.replaceWith;
 
 const handleSetPortalItems = async () => {
   await nextTick();
@@ -135,6 +149,8 @@ defineExpose({
 });
 
 onMounted(() => {
+  activeLeaves.value = getLeaves(props.root);
+
   if (customContent.value) return;
   handleSetPortalItems();
 });

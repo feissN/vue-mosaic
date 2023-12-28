@@ -3,7 +3,7 @@
     <div class="p-4 flex-1 bg-gray-800 flex gap-2">
       <MosaicContext :all-items="allItems">
         <MosaicDropzone>
-          <MosaicDraggable v-bind="allItems[4]"></MosaicDraggable>
+          <MosaicDraggable v-for="item in allItems" v-bind="item"></MosaicDraggable>
         </MosaicDropzone>
 
         <Mosaic ref="mosaicRef" v-model:root="root" @release="handleSaveChange"> </Mosaic>
@@ -15,12 +15,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import Mosaic from "./components/Mosaic.vue";
+import MosaicContext from "./components/MosaicContext.vue";
+import MosaicDraggable from "./components/MosaicDraggable.vue";
+import MosaicDropzone from "./components/MosaicDropzone.vue";
 import Hello from "./components/previews/Hello.vue";
 import { MosaicItem, MosaicNode } from "./types/Mosaic";
-import MosaicDraggable from "./components/MosaicDraggable.vue";
-import MosaicContext from "./components/MosaicContext.vue";
-import MosaicDropzone from "./components/MosaicDropzone.vue";
-import { getLeaves } from "./utils/Mosaic";
 
 const allItems = ref<MosaicItem[]>([
   { id: "hello1", component: Hello, title: "Hello 1" },

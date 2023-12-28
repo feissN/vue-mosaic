@@ -14,15 +14,30 @@
 
 <script setup lang="ts">
 import values from "lodash/values";
-import { MosaicDraggingSourcePathKey, MosaicIsDraggingKey } from "../symbols/Mosaic";
+import {
+  MosaicContextActionsProviderKey,
+  MosaicContextActiveLeavesKey,
+  MosaicDraggingSourcePathKey,
+  MosaicIsDraggingKey,
+} from "../symbols/Mosaic";
 import { MosaicDropTargetPosition } from "../utils/DragAndDrop";
 import { injectStrict } from "../utils/InjectStrict";
+import { createRemoveUpdate } from "../utils/MosaicUpdates";
+import { nextTick } from "vue";
+import { getLeaves } from "../utils/Mosaic";
 
 // const mosaicRootActions = injectStrict(MosaicRootActionsKey);
 const mosaicIsDragging = injectStrict(MosaicIsDraggingKey);
 const mosaicDraggingSourcePath = injectStrict(MosaicDraggingSourcePathKey);
+const mosaicContextActions = injectStrict(MosaicContextActionsProviderKey);
+const activeLeaves = injectStrict(MosaicContextActiveLeavesKey);
 
-const handleDragEnd = (event: MouseEvent, position: MosaicDropTargetPosition) => {
-  //   mosaicRootActions.updateTree([createRemoveUpdate(mosaicRootActions.getRoot(), mosaicDraggingSourcePath.value)], false, true);
+const handleDragEnd = async (event: MouseEvent, position: MosaicDropTargetPosition) => {
+  mosaicContextActions.updateTree([createRemoveUpdate(mosaicContextActions.getRoot(), mosaicDraggingSourcePath.value)], false, true);
+
+  await nextTick();
+
+  const newLeaves = getLeaves(mosaicContextActions.getRoot());
+  activeLeaves.value = newLeaves;
 };
 </script>
