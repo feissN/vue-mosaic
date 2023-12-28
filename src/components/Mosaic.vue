@@ -1,10 +1,12 @@
 <template>
   <div class="mosaic w-full h-full relative overflow-hidden">
-    <MosaicRoot :root="root">
-      <template #content="contentProps">
-        <slot name="content" v-bind="contentProps"></slot>
-      </template>
-    </MosaicRoot>
+    <div class="mosaic-root absolute inset-1">
+      <MosaicContent :node="root" :bounding-box="BoundingBox.empty()" :path="[]">
+        <template #content="contentProps">
+          <slot name="content" v-bind="contentProps"></slot>
+        </template>
+      </MosaicContent>
+    </div>
   </div>
   <div>
     <div
@@ -20,9 +22,10 @@
 import { computed, nextTick, onMounted, provide, ref, useSlots } from "vue";
 import { MosaicDraggingSourcePathKey, MosaicIsDraggingKey, MosaicRootActionsKey } from "../symbols/Mosaic";
 import { MosaicItem, MosaicNode, MosaicUpdate } from "../types/Mosaic";
+import { BoundingBox } from "../utils/BoundingBox";
 import { getLeaves } from "../utils/Mosaic";
 import { createExpandUpdate, createHideUpdate, createRemoveUpdate, updateTree } from "../utils/MosaicUpdates";
-import MosaicRoot from "./MosaicRoot.vue";
+import MosaicContent from "./MosaicContent.vue";
 
 const props = defineProps<{
   root: MosaicNode;
