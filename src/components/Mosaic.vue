@@ -18,7 +18,7 @@
     </div>
   </div>
   <div class="hidden">
-    <div v-for="leave of allLeaves" :ref="(element) => handleAddLeaveElement(leave, element as HTMLElement)">
+    <div v-for="leave of allLeaves" :key="leave.id" :ref="(element) => handleAddLeaveElement(leave, element as HTMLElement)">
       <component :is="leave.component" :title="leave.title"></component>
     </div>
   </div>
@@ -70,6 +70,23 @@ const handleDropped = async () => {
   await nextTick();
   const newLeaves = getLeaves(props.root);
   activeLeaves.value = newLeaves;
+};
+
+const handleAddPanel = async () => {
+  const newItem: MosaicItem = {
+    component: props.newPanelComponent || MosaicEmpty,
+    id: crypto.randomUUID(),
+    title: "New item",
+  };
+
+  const newRoot = addMosaicNode(props.root, newItem);
+  replaceRoot(newRoot);
+
+  allLeaves.value.push(newItem);
+
+  activeLeaves.value = getLeaves(newRoot);
+  await nextTick();
+  handleSetPortalItems();
 };
 
 const handleAddLeaveElement = (leave: MosaicItem, element: HTMLElement) => {
@@ -124,6 +141,7 @@ mosaicContextActions.expand = mosaicRootActions.expand;
 mosaicContextActions.hide = mosaicRootActions.hide;
 mosaicContextActions.remove = mosaicRootActions.remove;
 mosaicContextActions.replaceWith = mosaicRootActions.replaceWith;
+mosaicContextActions.handleAddPanel = handleAddPanel;
 
 const handleSetPortalItems = async () => {
   await nextTick();
@@ -135,13 +153,6 @@ const handleSetPortalItems = async () => {
 
     portalDiv.appendChild(element as Node);
   });
-};
-
-const handleAddPanel = () => {
-  const newRoot = addMosaicNode(props.root, props.newPanelComponent || MosaicEmpty);
-  //   leaves.value = getLeaves(newRoot);
-  replaceRoot(newRoot);
-  handleSetPortalItems();
 };
 
 defineExpose({

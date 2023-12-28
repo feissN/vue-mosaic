@@ -7,7 +7,7 @@ import set from "lodash/set";
 import take from "lodash/take";
 import { MosaicBranch, MosaicDirection, MosaicNode, MosaicParent, MosaicPath, MosaicUpdate, MosaicUpdateSpec } from "../types/Mosaic";
 import { MosaicDropTargetPosition } from "../utils/DragAndDrop";
-import { getAndAssertNodeAtPathExists, getOtherBranch, isParent } from "./Mosaic";
+import { getAndAssertNodeAtPathExists, getOtherBranch } from "./Mosaic";
 
 /**
  * Used to prepare `update` for `immutability-helper`

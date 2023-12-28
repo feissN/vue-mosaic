@@ -1,5 +1,11 @@
 <template>
-  <div class="bg-gray-700 w-24 h-full p-1 flex flex-col gap-2 relative">
+  <div class="bg-gray-700 w-36 h-full p-1 flex flex-col gap-2 relative">
+    <div
+      class="hover:bg-slate-500 p-1 rounded-md overflow-hidden cursor-pointer hover:after:content-['+'] after:font-bold flex items-center gap-4 hover:underline"
+      @click="handleAddNew"
+    >
+      Add new
+    </div>
     <slot></slot>
     <div class="drop-target-container absolute inset-0" :class="[mosaicIsDragging ? 'block' : 'hidden']">
       <div
@@ -26,18 +32,22 @@ import { createRemoveUpdate } from "../utils/MosaicUpdates";
 import { nextTick } from "vue";
 import { getLeaves } from "../utils/Mosaic";
 
-// const mosaicRootActions = injectStrict(MosaicRootActionsKey);
+const mosaicContextActions = injectStrict(MosaicContextActionsProviderKey);
 const mosaicIsDragging = injectStrict(MosaicIsDraggingKey);
 const mosaicDraggingSourcePath = injectStrict(MosaicDraggingSourcePathKey);
-const mosaicContextActions = injectStrict(MosaicContextActionsProviderKey);
 const activeLeaves = injectStrict(MosaicContextActiveLeavesKey);
 
 const handleDragEnd = async (event: MouseEvent, position: MosaicDropTargetPosition) => {
+  if (!mosaicDraggingSourcePath.value.length) return;
   mosaicContextActions.updateTree([createRemoveUpdate(mosaicContextActions.getRoot(), mosaicDraggingSourcePath.value)], false, true);
 
   await nextTick();
 
   const newLeaves = getLeaves(mosaicContextActions.getRoot());
   activeLeaves.value = newLeaves;
+};
+
+const handleAddNew = () => {
+  mosaicContextActions.handleAddPanel();
 };
 </script>

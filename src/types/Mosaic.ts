@@ -69,4 +69,6 @@ export interface MosaicRootActions {
   getRoot: () => MosaicNode | null;
 }
 
-export type MosaicContextActionsProviders = MosaicRootActions;
+export type MosaicContextActionsProviders = MosaicRootActions & {
+  handleAddPanel: () => void;
+};

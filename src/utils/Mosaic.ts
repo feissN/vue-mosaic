@@ -165,7 +165,7 @@ export function getAndAssertNodeAtPathExists(tree: MosaicNode | null, path: Mosa
   return node;
 }
 
-export function addMosaicNode(root: MosaicNode | null, component: InstanceType<ComponentPublicInstance<any>>) {
+export function addMosaicNode(root: MosaicNode | null, item: MosaicItem) {
   if (root) {
     const path = getPathToCorner(root, Corner.TOP_RIGHT);
     const parent = getNodeAtPath(root, dropRight(path)) as MosaicParent;
@@ -176,17 +176,9 @@ export function addMosaicNode(root: MosaicNode | null, component: InstanceType<C
     let second: MosaicNode;
     if (direction === "row") {
       first = destination;
-      second = {
-        component: component,
-        id: crypto.randomUUID(),
-        title: "New window",
-      };
+      second = item;
     } else {
-      first = {
-        component: component,
-        id: crypto.randomUUID(),
-        title: "New window",
-      };
+      first = item;
       second = destination;
     }
 
@@ -203,11 +195,7 @@ export function addMosaicNode(root: MosaicNode | null, component: InstanceType<C
       },
     ]);
   } else {
-    root = {
-      component: component,
-      id: crypto.randomUUID(),
-      title: "New window",
-    };
+    root = item;
   }
 
   return root;

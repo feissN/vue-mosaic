@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { provide, ref, watch } from "vue";
+import { onMounted, provide, ref, watch } from "vue";
 import {
   MosaicDraggingSourcePathKey,
   MosaicIsDraggingKey,
@@ -18,6 +18,9 @@ const props = defineProps<{
   allItems: MosaicItem[];
 }>();
 
+const allLeaves = ref(props.allItems);
+provide(MosaicContextAllLeavesKey, allLeaves);
+
 const activeLeaves = ref<MosaicItem[]>([]);
 provide(MosaicContextActiveLeavesKey, activeLeaves);
 
@@ -29,9 +32,6 @@ provide(MosaicDraggingSourcePathKey, draggingSourcePath);
 
 const draggingSourceItem = ref();
 provide(MosaicDraggingSourceItemKey, draggingSourceItem);
-
-const allLeaves = ref(props.allItems);
-provide(MosaicContextAllLeavesKey, allLeaves);
 
 const contextActionProviders: MosaicContextActionsProviders = {
   expand(path, percentage) {
@@ -51,6 +51,9 @@ const contextActionProviders: MosaicContextActionsProviders = {
   },
   updateTree(updates, suppressOnRelease, refreshPortals) {
     throw new Error(`[MosaicContext] updateTree not implemented in Mosaic`);
+  },
+  handleAddPanel() {
+    throw new Error(`[MosaicContext] handleAddPanel not implemented in Mosaic`);
   },
 };
 provide(MosaicContextActionsProviderKey, contextActionProviders);
