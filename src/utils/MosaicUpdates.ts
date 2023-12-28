@@ -172,14 +172,3 @@ export function createExpandUpdate(path: MosaicPath, percentage: number): Mosaic
     path: [],
   };
 }
-
-export function calculateSplitPercentageSum(node: MosaicNode): number {
-  if (!isParent(node)) {
-    return 0;
-  }
-
-  const firstSum = calculateSplitPercentageSum(node.first);
-  const secondSum = calculateSplitPercentageSum(node.second);
-
-  return (node.splitPercentage || 0) + firstSum + secondSum;
-}
