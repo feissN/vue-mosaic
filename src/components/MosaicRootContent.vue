@@ -1,6 +1,11 @@
 <template>
   <template v-if="isParent(node)">
-    <MosaicRootContent :node="node.first" :bounding-box="boundingBoxes.first" :path="path.concat('first')"> </MosaicRootContent>
+    <MosaicRootContent :node="node.first" :bounding-box="boundingBoxes.first" :path="path.concat('first')">
+      <template #content="contentProps">
+        <slot name="content" v-bind="contentProps"></slot>
+      </template>
+      ></MosaicRootContent
+    >
 
     <MosaicSplit
       :direction="node.direction"
@@ -12,7 +17,11 @@
       @change="handleResize($event, path, true)"
     />
 
-    <MosaicRootContent :node="node.second" :bounding-box="boundingBoxes.second" :path="path.concat('second')"> </MosaicRootContent>
+    <MosaicRootContent :node="node.second" :bounding-box="boundingBoxes.second" :path="path.concat('second')">
+      <template #content="contentProps">
+        <slot name="content" v-bind="contentProps"></slot>
+      </template>
+    </MosaicRootContent>
   </template>
   <div v-else class="mosaic-tile absolute m-[3px]" :style="{ ...BoundingBox.asStyles(boundingBox) }">
     <MosaicWindow
@@ -21,7 +30,9 @@
       :path="path"
       :total-window-amount="getLeaves(mosaicRootActions.getRoot()).length"
     >
-      <div :id="node.id" class="w-full h-full overflow-hidden"></div>
+      <div :id="node.id" class="w-full h-full overflow-hidden">
+        <slot name="content" :node="node" :bounding-box="boundingBox" :path="path"></slot>
+      </div>
     </MosaicWindow>
   </div>
 </template>

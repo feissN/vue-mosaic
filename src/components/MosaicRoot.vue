@@ -1,6 +1,10 @@
 <template>
   <div class="mosaic-root absolute inset-1">
-    <MosaicRootContent :node="root" :bounding-box="BoundingBox.empty()" :path="[]"> </MosaicRootContent>
+    <MosaicRootContent :node="root" :bounding-box="BoundingBox.empty()" :path="[]">
+      <template #content="contentProps">
+        <slot name="content" v-bind="contentProps"></slot>
+      </template>
+    </MosaicRootContent>
   </div>
 </template>
 

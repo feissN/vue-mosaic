@@ -9,10 +9,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import Mosaic from "./components/Mosaic.vue";
-import { MosaicNode } from "./types/Mosaic";
 import Hello from "./components/previews/Hello.vue";
+import { MosaicNode, MosaicParent } from "./types/Mosaic";
 
-const root = ref<MosaicNode>({
+const root = ref<MosaicParent>({
   direction: "row",
   first: { id: "hello1", component: Hello, title: "Hello 1" },
   second: {

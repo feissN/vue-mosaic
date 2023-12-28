@@ -1,6 +1,10 @@
 <template>
   <div class="mosaic w-full h-full relative overflow-hidden">
-    <MosaicRoot :root="root"> </MosaicRoot>
+    <MosaicRoot :root="root">
+      <template #content="contentProps">
+        <slot name="content" v-bind="contentProps"></slot>
+      </template>
+    </MosaicRoot>
   </div>
   <div>
     <div
@@ -13,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, provide, ref } from "vue";
+import { computed, nextTick, onMounted, provide, ref, useSlots } from "vue";
 import { MosaicDraggingSourcePathKey, MosaicIsDraggingKey, MosaicRootActionsKey } from "../symbols/Mosaic";
 import { MosaicItem, MosaicNode, MosaicUpdate } from "../types/Mosaic";
 import { getLeaves } from "../utils/Mosaic";
@@ -28,6 +32,10 @@ const emit = defineEmits<{
   (event: "release", node: MosaicNode): void;
   (event: "update:root", node: MosaicNode): void;
 }>();
+
+const slots = useSlots();
+
+const customContent = computed(() => !!slots.content);
 
 const replaceRoot = (currentNode: MosaicNode | null, suppressOnRelease: boolean = false) => {
   emit("update:root", currentNode);
@@ -44,7 +52,7 @@ const updateTreeFromRoot = (updates: MosaicUpdate[], suppressOnRelease: boolean 
 
   replaceRoot(updateTree(currentNode, updates), suppressOnRelease);
 
-  if (refreshPortals) {
+  if (refreshPortals && !customContent.value) {
     handleSetPortalItems();
   }
 };
@@ -89,12 +97,14 @@ const handleSetPortalItems = async () => {
   leaveElements.value.forEach((element) => {
     const portalDiv = document.getElementById(element.id);
     if (!portalDiv) return;
+    if (!element.element) return;
 
     portalDiv.appendChild(element.element as unknown as Node);
   });
 };
 
 onMounted(() => {
+  if (customContent.value) return;
   leaves.value = getLeaves(props.root);
   handleSetPortalItems();
 });
