@@ -5,12 +5,21 @@
     class="mosaic-window mosaic-drop-target flex flex-col h-full relative select-none rounded-md overflow-hidden"
   >
     <div
-      class="mosaic-window-toolbar bg-gray-600 p-1"
+      class="mosaic-window-toolbar h-10 bg-gray-600 p-1 flex items-center justify-between"
       :class="[totalWindowAmount !== 1 ? 'draggable cursor-move hover:bg-gray-500' : '']"
       :draggable="totalWindowAmount !== 1"
       @dragstart="handleDragStart"
     >
-      {{ node.title }}
+      <div>
+        {{ node.title }}
+      </div>
+      <div
+        v-if="totalWindowAmount !== 1"
+        @click.stop="handleRemove"
+        class="cursor-pointer hover:bg-gray-600 transition-colors rounded-full w-8 h-8 flex items-center justify-center"
+      >
+        X
+      </div>
     </div>
     <div class="mosaic-window-body p-2 bg-gray-700 flex-1 h-full overflow-auto select-text">
       <slot>{{ node }}</slot>
@@ -41,14 +50,20 @@
 <script setup lang="ts">
 import dropRight from "lodash/dropRight";
 import values from "lodash/values";
-import { ref, watchEffect } from "vue";
-import { MosaicDraggingSourceItemKey, MosaicDraggingSourcePathKey, MosaicIsDraggingKey, MosaicRootActionsKey } from "../symbols/Mosaic";
+import { nextTick, ref, watchEffect } from "vue";
+import {
+  MosaicContextActiveLeavesKey,
+  MosaicDraggingSourceItemKey,
+  MosaicDraggingSourcePathKey,
+  MosaicIsDraggingKey,
+  MosaicRootActionsKey,
+} from "../symbols/Mosaic";
 import { MosaicBranch, MosaicNode } from "../types/Mosaic";
 import { BoundingBox } from "../utils/BoundingBox";
 import { MosaicDropTargetPosition } from "../utils/DragAndDrop";
 import { injectStrict } from "../utils/InjectStrict";
-import { isParent } from "../utils/Mosaic";
-import { createDragToUpdates } from "../utils/MosaicUpdates";
+import { getLeaves, isParent } from "../utils/Mosaic";
+import { createDragToUpdates, createRemoveUpdate } from "../utils/MosaicUpdates";
 
 const props = defineProps<{
   node: MosaicNode;
@@ -71,6 +86,7 @@ const mosaicRootActions = injectStrict(MosaicRootActionsKey);
 const mosaicIsDragging = injectStrict(MosaicIsDraggingKey);
 const mosaicSourcePath = injectStrict(MosaicDraggingSourcePathKey);
 const mosaicSourceItem = injectStrict(MosaicDraggingSourceItemKey);
+const activeLeaves = injectStrict(MosaicContextActiveLeavesKey);
 
 watchEffect(() => {
   if (!mosaicDragElementClone.value || !mosaicDragElementClonePosition.value) return;
@@ -161,5 +177,14 @@ const handleDragEnd = (event: MouseEvent, position: MosaicDropTargetPosition) =>
     true
   );
   emit("dropped");
+};
+
+const handleRemove = async () => {
+  mosaicRootActions.updateTree([createRemoveUpdate(mosaicRootActions.getRoot(), props.path)], false, true);
+
+  await nextTick();
+
+  const newLeaves = getLeaves(mosaicRootActions.getRoot());
+  activeLeaves.value = newLeaves;
 };
 </script>
