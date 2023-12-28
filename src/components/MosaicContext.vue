@@ -21,16 +21,6 @@ const props = defineProps<{
 const activeLeaves = ref<MosaicItem[]>([]);
 provide(MosaicContextActiveLeavesKey, activeLeaves);
 
-watch(
-  () => activeLeaves.value,
-  () => {
-    console.log(activeLeaves.value.map((l) => l.id));
-  },
-  {
-    deep: true,
-  }
-);
-
 const isDragging = ref(false);
 provide(MosaicIsDraggingKey, isDragging);
 
