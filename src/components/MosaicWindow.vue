@@ -41,20 +41,24 @@
 <script setup lang="ts">
 import dropRight from "lodash/dropRight";
 import values from "lodash/values";
-import { inject, ref, watchEffect } from "vue";
+import { ref, watchEffect } from "vue";
 import { MosaicDraggingSourceItemKey, MosaicDraggingSourcePathKey, MosaicIsDraggingKey, MosaicRootActionsKey } from "../symbols/Mosaic";
 import { MosaicBranch, MosaicNode } from "../types/Mosaic";
 import { BoundingBox } from "../utils/BoundingBox";
 import { MosaicDropTargetPosition } from "../utils/DragAndDrop";
+import { injectStrict } from "../utils/InjectStrict";
 import { isParent } from "../utils/Mosaic";
 import { createDragToUpdates } from "../utils/MosaicUpdates";
-import { injectStrict } from "../utils/InjectStrict";
 
 const props = defineProps<{
   node: MosaicNode;
   boundingBox: BoundingBox;
   path: MosaicBranch[];
   totalWindowAmount: number;
+}>();
+
+const emit = defineEmits<{
+  (event: "dropped"): void;
 }>();
 
 const mosaicWindowRef = ref<HTMLDivElement>();
@@ -156,5 +160,6 @@ const handleDragEnd = (event: MouseEvent, position: MosaicDropTargetPosition) =>
     false,
     true
   );
+  emit("dropped");
 };
 </script>

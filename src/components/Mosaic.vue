@@ -1,7 +1,7 @@
 <template>
   <div class="mosaic w-full h-full relative overflow-hidden">
     <div class="mosaic-root absolute inset-1">
-      <MosaicContent v-if="root" :node="root" :bounding-box="BoundingBox.empty()" :path="[]">
+      <MosaicContent v-if="root" :node="root" :bounding-box="BoundingBox.empty()" :path="[]" @dropped="handleDropped">
         <template #content="contentProps">
           <slot name="content" v-bind="contentProps"></slot>
         </template>
@@ -17,18 +17,19 @@
       </div>
     </div>
   </div>
-  <div>
-    <div v-for="leave of leaves" :ref="(element) => handleAddLeaveElement(leave, element as HTMLElement)">
+  <div class="hidden">
+    <div v-for="leave of allLeaves" :ref="(element) => handleAddLeaveElement(leave, element as HTMLElement)">
       <component :is="leave.component" :title="leave.title"></component>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ComponentPublicInstance, computed, nextTick, onMounted, provide, ref, useSlots } from "vue";
-import { MosaicDraggingSourcePathKey, MosaicIsDraggingKey, MosaicRootActionsKey } from "../symbols/Mosaic";
+import { ComponentPublicInstance, computed, nextTick, onMounted, provide, ref, useSlots, watch } from "vue";
+import { MosaicContextActiveLeavesKey, MosaicContextAllLeavesKey, MosaicRootActionsKey } from "../symbols/Mosaic";
 import { MosaicItem, MosaicNode, MosaicUpdate } from "../types/Mosaic";
 import { BoundingBox } from "../utils/BoundingBox";
+import { injectStrict } from "../utils/InjectStrict";
 import { addMosaicNode, getLeaves } from "../utils/Mosaic";
 import { createExpandUpdate, createHideUpdate, createRemoveUpdate, updateTree } from "../utils/MosaicUpdates";
 import MosaicContent from "./MosaicContent.vue";
@@ -44,6 +45,9 @@ const emit = defineEmits<{
   (event: "update:root", node: MosaicNode | null): void;
 }>();
 
+const allLeaves = injectStrict(MosaicContextAllLeavesKey);
+const activeLeaves = injectStrict(MosaicContextActiveLeavesKey);
+
 const slots = useSlots();
 
 const customContent = computed(() => !!slots.content);
@@ -56,7 +60,12 @@ const replaceRoot = (currentNode: MosaicNode | null, suppressOnRelease: boolean 
 };
 
 const leaveElements = ref<{ id: string; element: HTMLElement }[]>([]);
-const leaves = ref<MosaicItem[]>([]);
+
+const handleDropped = async () => {
+  await nextTick;
+  const newLeaves = getLeaves(props.root);
+  activeLeaves.value.splice(0, newLeaves.length, ...newLeaves);
+};
 
 const handleAddLeaveElement = (leave: MosaicItem, element: HTMLElement) => {
   if (leaveElements.value.find((element) => element.id === leave.id)) return;
@@ -105,12 +114,12 @@ provide(MosaicRootActionsKey, {
 const handleSetPortalItems = async () => {
   await nextTick();
 
-  leaveElements.value.forEach((element) => {
-    const portalDiv = document.getElementById(element.id);
+  leaveElements.value.forEach(({ element, id }) => {
+    const portalDiv = document.getElementById(id);
     if (!portalDiv) return;
-    if (!element.element) return;
+    if (!element) return;
 
-    portalDiv.appendChild(element.element as unknown as Node);
+    portalDiv.appendChild(element as Node);
   });
 };
 
@@ -127,7 +136,6 @@ defineExpose({
 
 onMounted(() => {
   if (customContent.value) return;
-  leaves.value = getLeaves(props.root);
   handleSetPortalItems();
 });
 </script>

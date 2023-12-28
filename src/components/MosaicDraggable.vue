@@ -1,5 +1,5 @@
 <template>
-  <div ref="mosaicDragItemRef">
+  <div v-if="!isVisible" ref="mosaicDragItemRef">
     <div class="cursor-move hover:bg-slate-500 p-1 rounded-md overflow-hidden" draggable="true" @dragstart="handleDragStart">
       {{ title }}
     </div>
@@ -7,16 +7,17 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref, watchEffect } from "vue";
-import { MosaicDraggingSourceItemKey, MosaicDraggingSourcePathKey, MosaicIsDraggingKey, MosaicRootActionsKey } from "../symbols/Mosaic";
-import { MosaicDropTargetPosition } from "../utils/DragAndDrop";
-import { createDragToUpdates } from "../utils/MosaicUpdates";
+import { computed, ref, watchEffect } from "vue";
+import {
+  MosaicContextActiveLeavesKey,
+  MosaicDraggingSourceItemKey,
+  MosaicDraggingSourcePathKey,
+  MosaicIsDraggingKey,
+} from "../symbols/Mosaic";
+import { MosaicItem } from "../types/Mosaic";
 import { injectStrict } from "../utils/InjectStrict";
-import Hello from "./previews/Hello.vue";
 
-const props = defineProps<{
-  title: string;
-}>();
+const props = defineProps<MosaicItem>();
 
 const mosaicDragItemRef = ref<HTMLDivElement>();
 
@@ -27,6 +28,12 @@ const mosaicDragElementClonePosition = ref<{ x: number; y: number } | null>(null
 const mosaicIsDragging = injectStrict(MosaicIsDraggingKey);
 const mosaicSourcePath = injectStrict(MosaicDraggingSourcePathKey);
 const mosaicSourceItem = injectStrict(MosaicDraggingSourceItemKey);
+const mosaicActiveLeaves = injectStrict(MosaicContextActiveLeavesKey);
+
+const isVisible = computed(() => {
+  const activeLeaveIds = mosaicActiveLeaves.value.map((leave) => leave.id);
+  return activeLeaveIds.includes(props.id);
+});
 
 watchEffect(() => {
   if (!mosaicDragElementClone.value || !mosaicDragElementClonePosition.value) return;
@@ -66,11 +73,7 @@ const handleDragStart = (e: DragEvent) => {
 
   mosaicIsDragging.value = true;
   mosaicSourcePath.value = [];
-  mosaicSourceItem.value = {
-    id: 'new-thingy',
-    title: 'Wordwat',
-    component: Hello
-  };
+  mosaicSourceItem.value = props;
 };
 
 const handleMouseMove = (e: MouseEvent) => {

@@ -5,3 +5,5 @@ export const MosaicRootActionsKey: InjectionKey<MosaicRootActions> = Symbol("mos
 export const MosaicIsDraggingKey: InjectionKey<Ref<boolean>> = Symbol("mosaicIsDragging");
 export const MosaicDraggingSourcePathKey: InjectionKey<Ref<MosaicPath>> = Symbol("mosaicDragginSourcePath");
 export const MosaicDraggingSourceItemKey: InjectionKey<Ref<MosaicItem | null>> = Symbol("mosaicDragginSourceItem");
+export const MosaicContextAllLeavesKey: InjectionKey<Ref<MosaicItem[]>> = Symbol("mosaicContextAllLeaves");
+export const MosaicContextActiveLeavesKey: InjectionKey<Ref<MosaicItem[]>> = Symbol("mosaicContextActiveLeaves");
