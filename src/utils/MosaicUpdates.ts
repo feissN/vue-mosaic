@@ -76,27 +76,30 @@ export function createDragToUpdates(
   root: MosaicNode,
   sourcePath: MosaicPath,
   destinationPath: MosaicPath,
-  position: MosaicDropTargetPosition
+  position: MosaicDropTargetPosition,
+  newSourceNode: MosaicNode | null
 ): MosaicUpdate[] {
   let destinationNode = getAndAssertNodeAtPathExists(root, destinationPath);
   const updates: MosaicUpdate[] = [];
 
-  const destinationIsParentOfSource = isPathPrefixEqual(sourcePath, destinationPath, destinationPath.length);
-  if (destinationIsParentOfSource) {
-    // Must explicitly remove source from the destination node
-    destinationNode = updateTree(destinationNode, [createRemoveUpdate(destinationNode, drop(sourcePath, destinationPath.length))]);
-  } else {
-    // Can remove source normally
-    updates.push(createRemoveUpdate(root, sourcePath));
+  if (!!sourcePath.length) {
+    const destinationIsParentOfSource = isPathPrefixEqual(sourcePath, destinationPath, destinationPath.length);
+    if (destinationIsParentOfSource) {
+      // Must explicitly remove source from the destination node
+      destinationNode = updateTree(destinationNode, [createRemoveUpdate(destinationNode, drop(sourcePath, destinationPath.length))]);
+    } else {
+      // Can remove source normally
+      updates.push(createRemoveUpdate(root, sourcePath));
 
-    // Have to drop in the correct destination after the source has been removed
-    const removedNodeParentIsInPath = isPathPrefixEqual(sourcePath, destinationPath, sourcePath.length - 1);
-    if (removedNodeParentIsInPath) {
-      destinationPath.splice(sourcePath.length - 1, 1);
+      // Have to drop in the correct destination after the source has been removed
+      const removedNodeParentIsInPath = isPathPrefixEqual(sourcePath, destinationPath, sourcePath.length - 1);
+      if (removedNodeParentIsInPath) {
+        destinationPath.splice(sourcePath.length - 1, 1);
+      }
     }
   }
 
-  const sourceNode = getAndAssertNodeAtPathExists(root, sourcePath);
+  const sourceNode = newSourceNode || getAndAssertNodeAtPathExists(root, sourcePath);
   let first: MosaicNode;
   let second: MosaicNode;
   if (position === MosaicDropTargetPosition.LEFT || position === MosaicDropTargetPosition.TOP) {

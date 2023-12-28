@@ -1,39 +1,47 @@
 <template>
   <div class="mosaic w-full h-full relative overflow-hidden">
     <div class="mosaic-root absolute inset-1">
-      <MosaicContent :node="root" :bounding-box="BoundingBox.empty()" :path="[]">
+      <MosaicContent v-if="root" :node="root" :bounding-box="BoundingBox.empty()" :path="[]">
         <template #content="contentProps">
           <slot name="content" v-bind="contentProps"></slot>
         </template>
       </MosaicContent>
+      <div v-else class="w-full h-full">
+        <slot name="empty">
+          <div>
+            <div>No Root</div>
+
+            <div @click="handleAddPanel" class="p-2 bg-gray-500 hover:bg-gray-600 cursor-pointer">Add a new panel</div>
+          </div>
+        </slot>
+      </div>
     </div>
   </div>
   <div>
-    <div
-      v-for="leave of leaves"
-      :ref="(element) => leaveElements.push({id:leave.id, element: (element as HTMLElement).children[0] as HTMLElement})"
-    >
+    <div v-for="leave of leaves" :ref="(element) => handleAddLeaveElement(leave, element as HTMLElement)">
       <component :is="leave.component" :title="leave.title"></component>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, provide, ref, useSlots } from "vue";
+import { ComponentPublicInstance, computed, nextTick, onMounted, provide, ref, useSlots } from "vue";
 import { MosaicDraggingSourcePathKey, MosaicIsDraggingKey, MosaicRootActionsKey } from "../symbols/Mosaic";
 import { MosaicItem, MosaicNode, MosaicUpdate } from "../types/Mosaic";
 import { BoundingBox } from "../utils/BoundingBox";
-import { getLeaves } from "../utils/Mosaic";
+import { addMosaicNode, getLeaves } from "../utils/Mosaic";
 import { createExpandUpdate, createHideUpdate, createRemoveUpdate, updateTree } from "../utils/MosaicUpdates";
 import MosaicContent from "./MosaicContent.vue";
+import MosaicEmpty from "./MosaicEmpty.vue";
 
 const props = defineProps<{
   root: MosaicNode;
+  newPanelComponent?: InstanceType<ComponentPublicInstance<any>>;
 }>();
 
 const emit = defineEmits<{
-  (event: "release", node: MosaicNode): void;
-  (event: "update:root", node: MosaicNode): void;
+  (event: "release", node: MosaicNode | null): void;
+  (event: "update:root", node: MosaicNode | null): void;
 }>();
 
 const slots = useSlots();
@@ -50,10 +58,16 @@ const replaceRoot = (currentNode: MosaicNode | null, suppressOnRelease: boolean 
 const leaveElements = ref<{ id: string; element: HTMLElement }[]>([]);
 const leaves = ref<MosaicItem[]>([]);
 
-const updateTreeFromRoot = (updates: MosaicUpdate[], suppressOnRelease: boolean = false, refreshPortals: boolean = false) => {
+const handleAddLeaveElement = (leave: MosaicItem, element: HTMLElement) => {
+  if (leaveElements.value.find((element) => element.id === leave.id)) return;
+  leaveElements.value.push({ id: leave.id, element: element.children[0] as HTMLElement });
+};
+
+const updateTreeFromRoot = async (updates: MosaicUpdate[], suppressOnRelease: boolean = false, refreshPortals: boolean = false) => {
   const currentNode = props.root || ({} as MosaicNode);
 
-  replaceRoot(updateTree(currentNode, updates), suppressOnRelease);
+  const updatedRoot = updateTree(currentNode, updates);
+  replaceRoot(updatedRoot, suppressOnRelease);
 
   if (refreshPortals && !customContent.value) {
     handleSetPortalItems();
@@ -64,7 +78,7 @@ provide(MosaicRootActionsKey, {
   updateTree: updateTreeFromRoot,
   getRoot: () => props.root,
   expand(path, percentage) {
-    updateTreeFromRoot([createExpandUpdate(path, percentage)]);
+    updateTreeFromRoot([createExpandUpdate(path, percentage || 50)]);
   },
   hide(path) {
     updateTreeFromRoot([createHideUpdate(path)]);
@@ -88,12 +102,6 @@ provide(MosaicRootActionsKey, {
   },
 });
 
-const isDragging = ref(false);
-provide(MosaicIsDraggingKey, isDragging);
-
-const draggingSourcePath = ref([]);
-provide(MosaicDraggingSourcePathKey, draggingSourcePath);
-
 const handleSetPortalItems = async () => {
   await nextTick();
 
@@ -105,6 +113,17 @@ const handleSetPortalItems = async () => {
     portalDiv.appendChild(element.element as unknown as Node);
   });
 };
+
+const handleAddPanel = () => {
+  const newRoot = addMosaicNode(props.root, props.newPanelComponent || MosaicEmpty);
+  //   leaves.value = getLeaves(newRoot);
+  replaceRoot(newRoot);
+  handleSetPortalItems();
+};
+
+defineExpose({
+  handlePanelUpdate: handleSetPortalItems,
+});
 
 onMounted(() => {
   if (customContent.value) return;

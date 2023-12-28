@@ -42,12 +42,13 @@
 import dropRight from "lodash/dropRight";
 import values from "lodash/values";
 import { inject, ref, watchEffect } from "vue";
-import { MosaicDraggingSourcePathKey, MosaicIsDraggingKey, MosaicRootActionsKey } from "../symbols/Mosaic";
+import { MosaicDraggingSourceItemKey, MosaicDraggingSourcePathKey, MosaicIsDraggingKey, MosaicRootActionsKey } from "../symbols/Mosaic";
 import { MosaicBranch, MosaicNode } from "../types/Mosaic";
 import { BoundingBox } from "../utils/BoundingBox";
 import { MosaicDropTargetPosition } from "../utils/DragAndDrop";
 import { isParent } from "../utils/Mosaic";
 import { createDragToUpdates } from "../utils/MosaicUpdates";
+import { injectStrict } from "../utils/InjectStrict";
 
 const props = defineProps<{
   node: MosaicNode;
@@ -62,9 +63,10 @@ const mosaicDragElementClone = ref<HTMLDivElement | null>(null);
 const mosaicDragElementCloneOriginalOffset = ref<{ x: number; y: number } | null>(null);
 const mosaicDragElementClonePosition = ref<{ x: number; y: number } | null>(null);
 
-const mosaicRootActions = inject(MosaicRootActionsKey);
-const mosaicIsDragging = inject(MosaicIsDraggingKey);
-const mosaicSourcePath = inject(MosaicDraggingSourcePathKey);
+const mosaicRootActions = injectStrict(MosaicRootActionsKey);
+const mosaicIsDragging = injectStrict(MosaicIsDraggingKey);
+const mosaicSourcePath = injectStrict(MosaicDraggingSourcePathKey);
+const mosaicSourceItem = injectStrict(MosaicDraggingSourceItemKey);
 
 watchEffect(() => {
   if (!mosaicDragElementClone.value || !mosaicDragElementClonePosition.value) return;
@@ -75,6 +77,8 @@ watchEffect(() => {
 
 const handleDragStart = (e: DragEvent) => {
   if (!mosaicRootActions || props.totalWindowAmount === 1) return;
+
+  if (!mosaicWindowRef.value) return;
 
   const startX = e.clientX;
   const startY = e.clientY;
@@ -108,8 +112,8 @@ const handleDragStart = (e: DragEvent) => {
 
 const handleMouseMove = (e: MouseEvent) => {
   mosaicDragElementClonePosition.value = {
-    x: e.clientX - mosaicDragElementCloneOriginalOffset.value.x || 0,
-    y: e.clientY - mosaicDragElementCloneOriginalOffset.value.y || 0,
+    x: e.clientX - (mosaicDragElementCloneOriginalOffset.value?.x || 0),
+    y: e.clientY - (mosaicDragElementCloneOriginalOffset.value?.y || 0),
   };
 };
 
@@ -148,7 +152,7 @@ const handleMouseUp = (e: MouseEvent) => {
 
 const handleDragEnd = (event: MouseEvent, position: MosaicDropTargetPosition) => {
   mosaicRootActions.updateTree(
-    createDragToUpdates(mosaicRootActions.getRoot()!, mosaicSourcePath.value, props.path, position),
+    createDragToUpdates(mosaicRootActions.getRoot()!, mosaicSourcePath.value, props.path, position, mosaicSourceItem.value),
     false,
     true
   );

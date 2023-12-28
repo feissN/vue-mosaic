@@ -1,6 +1,9 @@
 import clone from "lodash/clone";
 import get from "lodash/get";
 import { MosaicBranch, MosaicDirection, MosaicItem, MosaicNode, MosaicParent, MosaicPath } from "../types/Mosaic";
+import dropRight from "lodash/dropRight";
+import { ComponentPublicInstance } from "vue";
+import { updateTree } from "./MosaicUpdates";
 
 function alternateDirection(node: MosaicNode, direction: MosaicDirection = "row"): MosaicNode {
   if (isParent(node)) {
@@ -160,4 +163,52 @@ export function getAndAssertNodeAtPathExists(tree: MosaicNode | null, path: Mosa
     throw new Error(`Path [${path.join(", ")}] did not resolve to a node`);
   }
   return node;
+}
+
+export function addMosaicNode(root: MosaicNode | null, component: InstanceType<ComponentPublicInstance<any>>) {
+  if (root) {
+    const path = getPathToCorner(root, Corner.TOP_RIGHT);
+    const parent = getNodeAtPath(root, dropRight(path)) as MosaicParent;
+    const destination = getNodeAtPath(root, path) as MosaicNode;
+    const direction: MosaicDirection = parent ? getOtherDirection(parent.direction) : "row";
+
+    let first: MosaicNode;
+    let second: MosaicNode;
+    if (direction === "row") {
+      first = destination;
+      second = {
+        component: component,
+        id: crypto.randomUUID(),
+        title: "New window",
+      };
+    } else {
+      first = {
+        component: component,
+        id: crypto.randomUUID(),
+        title: "New window",
+      };
+      second = destination;
+    }
+
+    root = updateTree(root, [
+      {
+        path,
+        spec: {
+          $set: {
+            direction,
+            first,
+            second,
+          },
+        },
+      },
+    ]);
+  } else {
+    root = {
+      component: component,
+      id: crypto.randomUUID(),
+      title: "New window",
+    };
+  }
+
+  return root;
 }
