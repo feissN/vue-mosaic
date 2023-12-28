@@ -118,7 +118,7 @@ export function createDragToUpdates(
   updates.push({
     path: destinationPath,
     spec: {
-      $set: { first, second, direction },
+      $set: { first, second, direction, splitPercentage: position === "bottom" || position === "right" ? 70 : 30 },
     },
   });
 
