@@ -29,7 +29,7 @@ export function buildSpecFromUpdate(mosaicUpdate: MosaicUpdate): MosaicUpdateSpe
  * @returns {MosaicNode}
  */
 export function updateTree(root: MosaicNode, updates: MosaicUpdate[]) {
-  let currentNode = root;
+  let currentNode: MosaicNode | null = root;
   // TODO: get rid of the immutability-helper and just move all the updating items yourself.
   // Reason: I need to be able to keep the state of my component between updates
   updates.forEach((mUpdate: MosaicUpdate) => {
@@ -46,6 +46,15 @@ export function updateTree(root: MosaicNode, updates: MosaicUpdate[]) {
  * @returns {{path: T[], spec: {$set: MosaicNode}}}
  */
 export function createRemoveUpdate(root: MosaicNode | null, path: MosaicPath): MosaicUpdate {
+  if (!path.length) {
+    return {
+      path: [],
+      spec: {
+        $set: null,
+      },
+    };
+  }
+
   const parentPath = dropRight(path);
   const nodeToRemove = last(path);
   const siblingPath = parentPath.concat(getOtherBranch(nodeToRemove!));

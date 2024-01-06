@@ -1,11 +1,7 @@
 import { Component, ComponentPublicInstance } from "vue";
 import { Spec } from "immutability-helper";
 
-export type MosaicItem = {
-  id: string;
-  component: InstanceType<ComponentPublicInstance<any>>;
-  title: string;
-};
+export type MosaicItem = string | number;
 
 export type MosaicNode = MosaicParent | MosaicItem;
 
@@ -23,7 +19,7 @@ export type MosaicPath = MosaicBranch[];
 
 export type TileRenderer = (t: MosaicItem, path: MosaicBranch[]) => Component;
 
-export type MosaicUpdateSpec = Spec<MosaicNode>;
+export type MosaicUpdateSpec = Spec<MosaicNode | null>;
 
 export interface MosaicUpdate {
   path: MosaicPath;

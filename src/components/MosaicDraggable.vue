@@ -1,7 +1,17 @@
 <template>
-  <div v-if="!isVisible" ref="mosaicDragItemRef">
-    <div class="cursor-move hover:bg-slate-500 p-1 rounded-md overflow-hidden" draggable="true" @dragstart="handleDragStart">
-      {{ title }}
+  <div v-if="!isVisible" ref="mosaicDragItemRef" :id="`inactive-item-${id}`">
+    <div
+      class="cursor-move hover:bg-slate-500 p-1 rounded-md overflow-hidden flex items-center justify-between"
+      draggable="true"
+      @dragstart="handleDragStart"
+    >
+      <div>{{ title }}</div>
+      <div
+        class="hover:cursor-pointer hover:bg-white hover:text-red-400 w-5 h-5 flex items-center justify-center rounded-full"
+        @click.stop="handleDeleteItem"
+      >
+        <span>X</span>
+      </div>
     </div>
   </div>
 </template>
@@ -14,10 +24,13 @@ import {
   MosaicDraggingSourcePathKey,
   MosaicIsDraggingKey,
 } from "../symbols/Mosaic";
-import { MosaicItem } from "../types/Mosaic";
+import { MosaicItem, MosaicPath } from "../types/Mosaic";
 import { injectStrict } from "../utils/InjectStrict";
 
-const props = defineProps<MosaicItem>();
+const props = defineProps<{ title: string; id: MosaicItem }>();
+const emit = defineEmits<{
+  (event: "delete"): void;
+}>();
 
 const mosaicDragItemRef = ref<HTMLDivElement>();
 
@@ -31,8 +44,7 @@ const mosaicSourceItem = injectStrict(MosaicDraggingSourceItemKey);
 const mosaicActiveLeaves = injectStrict(MosaicContextActiveLeavesKey);
 
 const isVisible = computed(() => {
-  const activeLeaveIds = mosaicActiveLeaves.value.map((leave) => leave.id);
-  return activeLeaveIds.includes(props.id);
+  return mosaicActiveLeaves.value.includes(props.id);
 });
 
 watchEffect(() => {
@@ -73,7 +85,7 @@ const handleDragStart = (e: DragEvent) => {
 
   mosaicIsDragging.value = true;
   mosaicSourcePath.value = [];
-  mosaicSourceItem.value = props;
+  mosaicSourceItem.value = props.id;
 };
 
 const handleMouseMove = (e: MouseEvent) => {
@@ -100,5 +112,9 @@ const handleMouseUp = (e: MouseEvent) => {
 
   if ((e.target as HTMLElement).classList?.contains("drop-target")) return;
   e.preventDefault;
+};
+
+const handleDeleteItem = () => {
+  emit("delete");
 };
 </script>

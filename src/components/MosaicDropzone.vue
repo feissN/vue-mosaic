@@ -6,7 +6,16 @@
     >
       Add new
     </div>
-    <slot></slot>
+    <div>
+      <slot
+        v-for="inactiveLeave in inactiveLeaves"
+        name="item"
+        :key="inactiveLeave"
+        :id="inactiveLeave"
+        :title="allLeaves.find((leave) => leave.key === inactiveLeave)?.title || String(inactiveLeave)"
+      >
+      </slot>
+    </div>
     <div class="drop-target-container absolute inset-0" :class="[mosaicIsDragging ? 'block' : 'hidden']">
       <div
         v-for="position of values(MosaicDropTargetPosition)"
@@ -23,6 +32,8 @@ import values from "lodash/values";
 import {
   MosaicContextActionsProviderKey,
   MosaicContextActiveLeavesKey,
+  MosaicContextAllLeavesKey,
+  MosaicContextInactiveLeavesKey,
   MosaicDraggingSourcePathKey,
   MosaicIsDraggingKey,
 } from "../symbols/Mosaic";
@@ -32,10 +43,20 @@ import { createRemoveUpdate } from "../utils/MosaicUpdates";
 import { nextTick } from "vue";
 import { getLeaves } from "../utils/Mosaic";
 
+const props = defineProps<{
+  id: string;
+}>();
+
+const emit = defineEmits<{
+  (event: "add"): void;
+}>();
+
 const mosaicContextActions = injectStrict(MosaicContextActionsProviderKey);
 const mosaicIsDragging = injectStrict(MosaicIsDraggingKey);
 const mosaicDraggingSourcePath = injectStrict(MosaicDraggingSourcePathKey);
+const allLeaves = injectStrict(MosaicContextAllLeavesKey);
 const activeLeaves = injectStrict(MosaicContextActiveLeavesKey);
+const inactiveLeaves = injectStrict(MosaicContextInactiveLeavesKey);
 
 const handleDragEnd = async (event: MouseEvent, position: MosaicDropTargetPosition) => {
   if (!mosaicDraggingSourcePath.value.length) return;
@@ -45,9 +66,11 @@ const handleDragEnd = async (event: MouseEvent, position: MosaicDropTargetPositi
 
   const newLeaves = getLeaves(mosaicContextActions.getRoot());
   activeLeaves.value = newLeaves;
+  inactiveLeaves.value = allLeaves.value.filter(({ key }) => !activeLeaves.value.includes(key)).map(({ key }) => key);
 };
 
 const handleAddNew = () => {
-  mosaicContextActions.handleAddPanel();
+  //   mosaicContextActions.handleAddPanel();
+  emit("add");
 };
 </script>

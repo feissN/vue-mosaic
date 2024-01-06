@@ -3,23 +3,23 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, provide, ref, watch } from "vue";
+import { provide, ref } from "vue";
 import {
-  MosaicDraggingSourcePathKey,
-  MosaicIsDraggingKey,
-  MosaicDraggingSourceItemKey,
-  MosaicContextAllLeavesKey,
-  MosaicContextActiveLeavesKey,
   MosaicContextActionsProviderKey,
+  MosaicContextActiveLeavesKey,
+  MosaicContextInactiveLeavesKey,
+  MosaicDraggingSourceItemKey,
+  MosaicDraggingSourcePathKey,
+  MosaicContextAllLeavesKey,
+  MosaicIsDraggingKey,
 } from "../symbols/Mosaic";
 import { MosaicContextActionsProviders, MosaicItem } from "../types/Mosaic";
 
-const props = defineProps<{
-  allItems: MosaicItem[];
-}>();
-
-const allLeaves = ref(props.allItems);
+const allLeaves = ref([]);
 provide(MosaicContextAllLeavesKey, allLeaves);
+
+const inactiveLeaves = ref([]);
+provide(MosaicContextInactiveLeavesKey, inactiveLeaves);
 
 const activeLeaves = ref<MosaicItem[]>([]);
 provide(MosaicContextActiveLeavesKey, activeLeaves);

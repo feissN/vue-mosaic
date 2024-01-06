@@ -5,16 +5,14 @@
     class="mosaic-window mosaic-drop-target flex flex-col h-full relative select-none rounded-md overflow-hidden"
   >
     <div
-      class="mosaic-window-toolbar h-10 bg-gray-600 p-1 flex items-center justify-between"
-      :class="[totalWindowAmount !== 1 ? 'draggable cursor-move hover:bg-gray-500' : '']"
-      :draggable="totalWindowAmount !== 1"
+      class="mosaic-window-toolbar h-10 bg-gray-600 p-1 flex items-center justify-between draggable cursor-move hover:bg-gray-500"
+      :draggable="true"
       @dragstart="handleDragStart"
     >
       <div>
-        {{ node.title }}
+        {{ title }}
       </div>
       <div
-        v-if="totalWindowAmount !== 1"
         @click.stop="handleRemove"
         class="cursor-pointer hover:bg-gray-600 transition-colors rounded-full w-8 h-8 flex items-center justify-center"
       >
@@ -22,7 +20,7 @@
       </div>
     </div>
     <div class="mosaic-window-body p-2 bg-gray-700 flex-1 h-full overflow-auto select-text">
-      <slot>{{ node }}</slot>
+      <slot></slot>
     </div>
     <div class="drop-target-container absolute inset-0" :class="[mosaicIsDragging ? 'block' : 'hidden']">
       <div
@@ -53,6 +51,8 @@ import values from "lodash/values";
 import { nextTick, ref, watchEffect } from "vue";
 import {
   MosaicContextActiveLeavesKey,
+  MosaicContextAllLeavesKey,
+  MosaicContextInactiveLeavesKey,
   MosaicDraggingSourceItemKey,
   MosaicDraggingSourcePathKey,
   MosaicIsDraggingKey,
@@ -66,10 +66,10 @@ import { getLeaves, isParent } from "../utils/Mosaic";
 import { createDragToUpdates, createRemoveUpdate } from "../utils/MosaicUpdates";
 
 const props = defineProps<{
+  title: string;
   node: MosaicNode;
   boundingBox: BoundingBox;
   path: MosaicBranch[];
-  totalWindowAmount: number;
 }>();
 
 const emit = defineEmits<{
@@ -86,6 +86,8 @@ const mosaicRootActions = injectStrict(MosaicRootActionsKey);
 const mosaicIsDragging = injectStrict(MosaicIsDraggingKey);
 const mosaicSourcePath = injectStrict(MosaicDraggingSourcePathKey);
 const mosaicSourceItem = injectStrict(MosaicDraggingSourceItemKey);
+const allLeaves = injectStrict(MosaicContextAllLeavesKey);
+const inactiveLeaves = injectStrict(MosaicContextInactiveLeavesKey);
 const activeLeaves = injectStrict(MosaicContextActiveLeavesKey);
 
 watchEffect(() => {
@@ -96,7 +98,7 @@ watchEffect(() => {
 });
 
 const handleDragStart = (e: DragEvent) => {
-  if (!mosaicRootActions || props.totalWindowAmount === 1) return;
+  if (!mosaicRootActions) return;
 
   if (!mosaicWindowRef.value) return;
 
@@ -110,16 +112,25 @@ const handleDragStart = (e: DragEvent) => {
     y: startY - targetElement.getBoundingClientRect().top,
   };
   mosaicDragElementClonePosition.value = {
-    x: startX - mosaicWindowRef.value.offsetLeft,
-    y: startY - mosaicWindowRef.value.offsetTop,
+    x: startX - e.offsetX,
+    y: startY - e.offsetY,
   };
   mosaicDragElementClone.value = mosaicWindowRef.value.cloneNode(true) as HTMLDivElement;
+  mosaicDragElementClone.value.style.transition = "transform";
+  mosaicDragElementClone.value.style.transitionDuration = "500ms";
+  mosaicDragElementClone.value.style.transformOrigin = `${e.offsetX}px ${e.offsetY}px`;
   mosaicDragElementClone.value.style.color = "white";
-  mosaicDragElementClone.value.style.opacity = "50%";
+  mosaicDragElementClone.value.style.opacity = "75%";
   mosaicDragElementClone.value.style.position = "fixed";
   mosaicDragElementClone.value.style.pointerEvents = "none";
+  mosaicDragElementClone.value.style.border = "2px solid white";
   mosaicDragElementClone.value.style.width = `${mosaicWindowRef.value.clientWidth}px`;
   mosaicDragElementClone.value.style.height = `${mosaicWindowRef.value.clientHeight}px`;
+
+  setTimeout(() => {
+    mosaicDragElementClone.value!.style.transform = `scale(0.5)`;
+  });
+
   document.body.appendChild(mosaicDragElementClone.value as unknown as Node);
 
   document.addEventListener("mousemove", handleMouseMove);
@@ -186,5 +197,6 @@ const handleRemove = async () => {
 
   const newLeaves = getLeaves(mosaicRootActions.getRoot());
   activeLeaves.value = newLeaves;
+  inactiveLeaves.value = allLeaves.value.filter(({ key }) => !activeLeaves.value.includes(key)).map(({ key }) => key);
 };
 </script>

@@ -1,6 +1,6 @@
 <template>
   <template v-if="isParent(node)">
-    <MosaicContent :node="node.first" :bounding-box="boundingBoxes!.first" :path="path.concat('first')" @dropped="emit('dropped')">
+    <MosaicContent :node="node.first" :bounding-box="boundingBoxes!.first" :path="path.concat('first')">
       <template #content="contentProps">
         <slot name="content" v-bind="contentProps"></slot>
       </template>
@@ -16,24 +16,16 @@
       @change="handleResize($event, path, true)"
     />
 
-    <MosaicContent :node="node.second" :bounding-box="boundingBoxes!.second" :path="path.concat('second')" @dropped="emit('dropped')">
+    <MosaicContent :node="node.second" :bounding-box="boundingBoxes!.second" :path="path.concat('second')">
       <template #content="contentProps">
         <slot name="content" v-bind="contentProps"></slot>
       </template>
     </MosaicContent>
   </template>
   <div v-else class="mosaic-tile absolute m-[3px]" :style="{ ...BoundingBox.asStyles(boundingBox) }">
-    <MosaicWindow
-      :node="node"
-      :bounding-box="boundingBox"
-      :path="path"
-      :total-window-amount="getLeaves(mosaicRootActions.getRoot()).length"
-      @dropped="emit('dropped')"
-    >
-      <div :id="node.id" class="w-full h-full overflow-hidden">
-        <slot name="content" :node="node" :bounding-box="boundingBox" :path="path"></slot>
-      </div>
-    </MosaicWindow>
+    <div class="w-full h-full overflow-hidden">
+      <slot name="content" :node="node" :bounding-box="boundingBox" :path="path"></slot>
+    </div>
   </div>
 </template>
 
@@ -43,17 +35,13 @@ import { MosaicRootActionsKey } from "../symbols/Mosaic";
 import { MosaicBranch, MosaicNode } from "../types/Mosaic";
 import { BoundingBox } from "../utils/BoundingBox";
 import { injectStrict } from "../utils/InjectStrict";
-import { getLeaves, isParent } from "../utils/Mosaic";
+import { isParent } from "../utils/Mosaic";
 import MosaicSplit from "./MosaicSplit.vue";
-import MosaicWindow from "./MosaicWindow.vue";
 
 const props = defineProps<{
   node: MosaicNode;
   boundingBox: BoundingBox;
   path: MosaicBranch[];
-}>();
-const emit = defineEmits<{
-  (event: "dropped"): void;
 }>();
 
 const mosaicRootActions = injectStrict(MosaicRootActionsKey);
