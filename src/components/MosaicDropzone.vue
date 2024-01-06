@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-gray-700 w-36 h-full p-1 flex flex-col gap-2 relative">
+  <div class="bg-gray-700 w-36 h-full p-1 flex flex-col gap-2 relative mosaic-droppable mosaic-droppable-full">
     <div
       class="hover:bg-slate-500 p-1 rounded-md overflow-hidden cursor-pointer hover:after:content-['+'] after:font-bold flex items-center gap-4 hover:underline"
       @click="handleAddNew"
@@ -20,7 +20,7 @@
       <div
         v-for="position of values(MosaicDropTargetPosition)"
         :key="position"
-        class="drop-target top inset-0 absolute bg-[#4c90f0] bg-opacity-40 border-2 border-[#4c90f0] rounded-md transition-opacity opacity-0 hover:opacity-100 cursor-alias"
+        class="drop-target top inset-0 absolute"
         @mouseup="handleDragEnd($event, 'top')"
       ></div>
     </div>

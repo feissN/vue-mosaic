@@ -1,6 +1,7 @@
 <template>
-  <div v-if="!isVisible" ref="mosaicDragItemRef" :id="`inactive-item-${id}`">
+  <div v-if="!isVisible" :id="`inactive-item-${id}`">
     <div
+      ref="mosaicDragItemRef"
       class="cursor-move hover:bg-slate-500 p-1 rounded-md overflow-hidden flex items-center justify-between"
       draggable="true"
       @dragstart="handleDragStart"
@@ -72,12 +73,25 @@ const handleDragStart = (e: DragEvent) => {
     y: startY - mosaicDragItemRef.value.offsetTop,
   };
   mosaicDragElementClone.value = mosaicDragItemRef.value.cloneNode(true) as HTMLDivElement;
+  mosaicDragElementClone.value.style.transition = "transform";
+  mosaicDragElementClone.value.style.transitionDuration = "500ms";
+  mosaicDragElementClone.value.style.transformOrigin = `${e.offsetX}px ${e.offsetY}px`;
+  mosaicDragElementClone.value.style.borderRadius = "0.375rem";
   mosaicDragElementClone.value.style.color = "white";
-  mosaicDragElementClone.value.style.opacity = "50%";
+  mosaicDragElementClone.value.style.opacity = "75%";
   mosaicDragElementClone.value.style.position = "fixed";
   mosaicDragElementClone.value.style.pointerEvents = "none";
+  mosaicDragElementClone.value.style.border = "2px solid white";
+  mosaicDragElementClone.value.style.display = "flex";
+  mosaicDragElementClone.value.style.alignItems = "center";
+  mosaicDragElementClone.value.style.justifyContent = "space-between";
   mosaicDragElementClone.value.style.width = `${mosaicDragItemRef.value.clientWidth}px`;
   mosaicDragElementClone.value.style.height = `${mosaicDragItemRef.value.clientHeight}px`;
+
+  setTimeout(() => {
+    mosaicDragElementClone.value!.style.transform = `scale(1.25)`;
+  });
+
   document.body.appendChild(mosaicDragElementClone.value as unknown as Node);
 
   document.addEventListener("mousemove", handleMouseMove);

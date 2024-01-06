@@ -2,7 +2,7 @@
   <div
     v-if="!isParent(node)"
     ref="mosaicWindowRef"
-    class="mosaic-window mosaic-drop-target flex flex-col h-full relative select-none rounded-md overflow-hidden"
+    class="mosaic-droppable mosaic-window mosaic-drop-target flex flex-col h-full relative select-none rounded-md overflow-hidden"
   >
     <div
       class="mosaic-window-toolbar h-10 bg-gray-600 p-1 flex items-center justify-between draggable cursor-move hover:bg-gray-500"
@@ -26,7 +26,7 @@
       <div
         v-for="position of values(MosaicDropTargetPosition)"
         :key="position"
-        class="drop-target inset-0 absolute bg-[#4c90f0] bg-opacity-40 border-2 border-[#4c90f0] rounded-md transition-opacity opacity-0 hover:opacity-100 cursor-alias"
+        class="drop-target inset-0 absolute"
         :class="[
           position,
           position === 'top'
@@ -74,6 +74,9 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: "dropped"): void;
+  (event: "mousedown", mouseEvent: MouseEvent): void;
+  (event: "mousemove", mouseEvent: MouseEvent): void;
+  (event: "mouseup", mouseEvent: MouseEvent): void;
 }>();
 
 const mosaicWindowRef = ref<HTMLDivElement>();
@@ -99,7 +102,6 @@ watchEffect(() => {
 
 const handleDragStart = (e: DragEvent) => {
   if (!mosaicRootActions) return;
-
   if (!mosaicWindowRef.value) return;
 
   const startX = e.clientX;
@@ -139,6 +141,8 @@ const handleDragStart = (e: DragEvent) => {
   mosaicRootActions.hide(props.path);
   mosaicIsDragging!.value = true;
   mosaicSourcePath!.value = props.path;
+
+  emit("mousedown", e);
 };
 
 const handleMouseMove = (e: MouseEvent) => {
@@ -146,6 +150,8 @@ const handleMouseMove = (e: MouseEvent) => {
     x: e.clientX - (mosaicDragElementCloneOriginalOffset.value?.x || 0),
     y: e.clientY - (mosaicDragElementCloneOriginalOffset.value?.y || 0),
   };
+
+  emit("mousemove", e);
 };
 
 const handleMouseUp = (e: MouseEvent) => {
@@ -161,6 +167,8 @@ const handleMouseUp = (e: MouseEvent) => {
   document.removeEventListener("mouseup", handleMouseUp);
 
   mosaicIsDragging!.value = false;
+
+  emit("mouseup", e);
 
   if ((e.target as HTMLElement).classList?.contains("drop-target")) return;
   e.preventDefault;
@@ -188,6 +196,7 @@ const handleDragEnd = (event: MouseEvent, position: MosaicDropTargetPosition) =>
     true
   );
   emit("dropped");
+  emit("mouseup", event);
 };
 
 const handleRemove = async () => {

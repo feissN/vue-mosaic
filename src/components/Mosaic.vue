@@ -18,6 +18,12 @@
         </slot>
       </div>
     </div>
+    <Teleport to="body">
+      <div
+        ref="previewRef"
+        class="preview fixed bg-[#4c90f0] bg-opacity-40 border-2 border-[#4c90f0] rounded-md opacity-0 hover:opacity-100 cursor-alias select-none pointer-events-none transition-all"
+      ></div>
+    </Teleport>
   </div>
 </template>
 
@@ -28,6 +34,7 @@ import {
   MosaicContextActiveLeavesKey,
   MosaicContextAllLeavesKey,
   MosaicContextInactiveLeavesKey,
+  MosaicIsDraggingKey,
   MosaicRootActionsKey,
 } from "../symbols/Mosaic";
 import { MosaicItem, MosaicNode, MosaicRootActions, MosaicUpdate } from "../types/Mosaic";
@@ -39,6 +46,14 @@ import MosaicContent from "./MosaicContent.vue";
 import MosaicPanel from "./MosaicPanel.vue";
 import MosaicTarget from "./MosaicTarget.vue";
 import MosaicWindow from "./MosaicWindow.vue";
+
+type Slot = VNode<
+  RendererNode,
+  RendererElement,
+  {
+    [key: string]: any;
+  }
+>;
 
 const props = defineProps<{
   root: MosaicNode | null;
@@ -52,19 +67,13 @@ const emit = defineEmits<{
   (event: "addItem", key: MosaicItem, title: string): void;
 }>();
 
-type Slot = VNode<
-  RendererNode,
-  RendererElement,
-  {
-    [key: string]: any;
-  }
->;
-
 const slots = defineSlots<{
   empty(): Slot;
   default(): Slot[];
   inactive(props: { key: string; title: string }): [Slot];
 }>();
+
+const previewRef = ref<HTMLDivElement>();
 
 const allLeaves = injectStrict(MosaicContextAllLeavesKey);
 const inactiveLeaves = injectStrict(MosaicContextInactiveLeavesKey);
@@ -146,6 +155,110 @@ mosaicContextActions.remove = mosaicRootActions.remove;
 mosaicContextActions.replaceWith = mosaicRootActions.replaceWith;
 mosaicContextActions.handleAddPanel = handleAddPanel;
 
+function checkAttach(targetDom: HTMLElement, e: MouseEvent) {
+  const amount = 30;
+  const size = amount / 100;
+
+  const trect = targetDom.getBoundingClientRect();
+  const tW = trect.width * size;
+  const tH = trect.height * size;
+  const rPos = { x: e.clientX - trect.left, y: e.clientY - trect.top };
+
+  // Calc dists and check the closest one
+  const pos = [rPos.y - tH, trect.width - tW - rPos.x, trect.height - tH - rPos.y, rPos.x - tW];
+  // only matches if less than 0
+  let min = 0;
+  let minI = -1;
+  pos.forEach((v, i) => {
+    if (v < min) {
+      min = v;
+      minI = i;
+    }
+  });
+  return minI;
+}
+
+const previewPane = (attach: number, targetDom?: HTMLElement) => {
+  if (!previewRef.value) return;
+
+  const targetFullDroppable = targetDom?.classList.contains("mosaic-droppable-full");
+
+  if (attach === -1 && !targetFullDroppable) {
+    previewRef.value.style.opacity = "0";
+    return;
+  }
+  if (targetDom === undefined) {
+    return -1;
+  }
+  const amount = 30;
+  const size = amount / 100;
+
+  // Precalc styles
+  const targetRect = targetDom.getBoundingClientRect();
+  const previewPos = {
+    left: targetRect.left,
+    top: targetRect.top,
+    width: targetRect.width,
+    height: targetRect.height,
+  };
+
+  if (targetFullDroppable) {
+    previewRef.value.style.width = `${targetRect.width}px`;
+    previewRef.value.style.height = `${targetRect.height}px`;
+  } else {
+    if (attach === 1) {
+      previewPos.left += previewPos.width - previewPos.width * size;
+    } else if (attach === 2) {
+      previewPos.top += previewPos.height - previewPos.height * size;
+    }
+    if (attach % 2 === 0) {
+      previewPos.height *= size;
+    } else if (attach % 2 === 1) {
+      previewPos.width *= size;
+    }
+  }
+
+  // Update DOM style
+  previewRef.value.style.opacity = "1";
+  previewRef.value.style.position = "fixed";
+  for (const k in previewPos) {
+    previewRef.value.style[k as any] = previewPos[k as keyof typeof previewPos] + "px";
+  }
+};
+
+const mosaicIsDragging = injectStrict(MosaicIsDraggingKey);
+watch(
+  () => mosaicIsDragging.value,
+  () => {
+    if (mosaicIsDragging.value) {
+      document.addEventListener("mousemove", handleMousemove);
+    } else {
+      document.removeEventListener("mousemove", handleMousemove);
+      handleMouseup();
+    }
+  }
+);
+
+const handleMousemove = (e: MouseEvent) => {
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  let viewDom = el;
+  // wtf
+  for (; viewDom && viewDom.matches && !viewDom.matches(".mosaic-droppable"); viewDom = viewDom.parentNode as Element) {}
+  if (!viewDom || !viewDom.matches) {
+    previewPane(-1);
+    return;
+  }
+
+  const attach = checkAttach(viewDom as HTMLElement, e);
+  previewPane(attach, viewDom as HTMLElement);
+};
+
+const handleMouseup = () => {
+  if (!previewRef.value) return;
+  previewRef.value.style.opacity = "0";
+};
+
+// NEW SLOT OPERATIONS -------------------------------------
 const availableSlotComponents = ref<{ key: string; component: InstanceType<typeof MosaicPanel> }[]>([]);
 
 const getWindowTitle = (key: string) => {
@@ -272,7 +385,7 @@ const handleSlotsUpdated = () => {
 watch(
   () => slots.default?.(),
   () => {
-    console.log("slots update")
+    console.log("slots update");
     handleSlotsUpdated();
   }
 );
